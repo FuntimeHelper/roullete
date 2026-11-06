@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Black Russia x Standoff 2 — Мега Рулетка</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0d14;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Жестко скрываем любые элементы Netlify в углах экрана */
+        #netlify-badge,
+        iframe[src*="netlify"], 
+        div[style*="netlify"], 
+        a[href*="netlify.com/support"],
+        img[alt*="Netlify"],
+        *[id*="netlify"],
+        *[class*="netlify"] {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            position: absolute !important;
+            left: -9999px !important;
+        }
+
+        /* Контейнер рулетки */
+        .roulette-viewport {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, #121521 0%, #0d1018 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.85);
+        }
+        .roulette-viewport::before,
+        .roulette-viewport::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 56px;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .roulette-viewport::before {
+            left: 0;
+            background: linear-gradient(90deg, #0b0d14 0%, transparent 100%);
+        }
+        .roulette-viewport::after {
+            right: 0;
+            background: linear-gradient(270deg, #0b0d14 0%, transparent 100%);
+        }
+
+        /* Центральный указатель */
+        .center-pointer {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 3px;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, #f59e0b 0%, #ef4444 50%, #f59e0b 100%);
+            z-index: 30;
+            box-shadow: 0 0 12px #f59e0b;
+        }
+        .center-pointer::before,
+        .center-pointer::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+        }
+        .center-pointer::before {
+            top: 0;
+            border-top: 10px solid #f59e0b;
+        }
+        .center-pointer::after {
+            bottom: 0;
+            border-bottom: 10px solid #f59e0b;
+        }
+
+        /* Кнопка вращения */
+        .spin-btn-active {
+            background: linear-gradient(90deg, #ea580c 0%, #f59e0b 50%, #ea580c 100%);
+            background-size: 200% auto;
+            box-shadow: 0 8px 25px -4px rgba(245, 158, 11, 0.5);
+            animation: shine 3s linear infinite;
+        }
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        /* Госномер РФ */
+        .ru-plate {
+            background: #ffffff;
+            color: #111827;
+            border: 2px solid #111827;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: stretch;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            font-family: 'Inter', sans-serif;
+        }
+        .ru-plate-main {
+            padding: 2px 6px;
+            font-weight: 900;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+        }
+        .ru-plate-region {
+            border-left: 1.5px solid #111827;
+            padding: 1px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 9px;
+            line-height: 1;
+            background: #f9fafb;
+        }
+        .ru-flag {
+            width: 12px;
+            height: 7px;
+            margin-top: 2px;
+            border: 0.5px solid #ccc;
+            background: linear-gradient(to bottom, #fff 33.3%, #0039a6 33.3%, #0039a6 66.6%, #d52b1e 66.6%);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-8">
+
+    <!-- Всплывающее уведомление (Toast) -->
+    <div id="toastContainer" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 -translate-y-2">
+        <div id="toastMessage" class="px-4 py-2 rounded-xl bg-[#1a1f2e] border border-amber-500/40 text-white text-xs font-bold shadow-2xl flex items-center gap-2 whitespace-nowrap">
+            <span>🎁</span>
+            <span id="toastText">Уведомление</span>
+        </div>
+    </div>
+
+    <main class="max-w-md mx-auto px-3 pt-3">
+        
+        <!-- Компактная адаптивная шапка (Header) -->
+        <header class="flex items-center justify-between gap-2 bg-[#141722] border border-white/10 rounded-2xl p-2.5 mb-3 shadow-lg">
+            <!-- Левая группа: лого и название -->
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center font-black text-xs text-white shadow-md shadow-orange-500/20 shrink-0">
+                    BR
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1">
+                        <h1 class="text-xs sm:text-sm font-black tracking-tight text-white truncate">BR x SO2 DROP</h1>
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
+                    </div>
+                    <p class="text-[10px] text-gray-400 truncate">Официальная раздача призов</p>
+                </div>
+            </div>
+
+            <!-- Правая группа: звук, счетчик и кнопка забрать -->
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button id="soundToggleBtn" onclick="toggleSound()" class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-gray-300 transition active:scale-95" title="Звук">
+                    <svg id="soundOnIcon" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+                    <svg id="soundOffIcon" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                </button>
+                <div class="bg-white/5 border border-white/10 rounded-xl px-2 py-1 text-center min-w-[42px] sm:min-w-[48px]">
+                    <span class="block text-[8px] sm:text-[9px] text-gray-400 uppercase font-semibold leading-none">Призы</span>
+                    <span id="inventoryCountBadge" class="text-[11px] sm:text-xs font-extrabold text-amber-400 leading-tight">0</span>
+                </div>
+                <button onclick="redirectToOffer()" class="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-[11px] sm:text-xs font-extrabold uppercase tracking-wider shadow-lg shadow-emerald-500/25 active:scale-95 transition flex items-center gap-1 shrink-0 animate-pulse">
+                    <span>Забрать</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Компактная живая лента выигрышей (Live Drop + чат) -->
+        <div class="bg-[#131620] border border-white/10 rounded-xl px-3 py-2 mb-3.5 flex items-center justify-between gap-2 overflow-hidden relative">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+                <span class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/20 border border-red-500/40 text-[9px] font-black text-red-400 uppercase shrink-0">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
+                    LIVE
+                </span>
+                <div id="liveFeedItem" class="text-[11px] text-gray-300 truncate transition-all duration-300">
+                    Игрок <b class="text-white">@br_maga77</b> выбил <b class="text-amber-400">А777АА 777</b> (15КК)
+                </div>
+            </div>
+            <span class="text-[10px] text-emerald-400 font-bold shrink-0">только что</span>
+        </div>
+
+        <!-- Переключатель вкладок (Tabs) -->
+        <div class="grid grid-cols-2 gap-1.5 bg-[#14161f] p-1.5 rounded-2xl border border-white/10 mb-3.5">
+            <button id="tabPlates" onclick="switchTab('plates')" class="py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-lg shadow-orange-600/25">
+                <span>🚘</span>
+                <span class="truncate">Рулетка номеров</span>
+            </button>
+            <button id="tabGold" onclick="switchTab('gold')" class="py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 text-gray-400 hover:text-white">
+                <span>🪙</span>
+                <span class="truncate">Голда SO2</span>
+            </button>
+        </div>
+
+        <!-- Прогресс-бар до гарантированного Легендарного приза + Спины -->
+        <div class="bg-[#141722] border border-amber-500/25 rounded-2xl p-2.5 mb-3.5">
+            <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <span class="font-bold text-gray-300 flex items-center gap-1">
+                    <span>🔥</span> До <b class="text-amber-400">ЛЕГЕНДАРНОГО</b> приза: <span id="pityCounterText" class="text-white font-black">2 спина</span>
+                </span>
+                <span class="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 font-extrabold text-[10px]">
+                    Спинов: <span id="spinsLeftCount">3</span>
+                </span>
+            </div>
+            <div class="w-full h-2 bg-black/50 rounded-full overflow-hidden p-0.5 border border-white/5">
+                <div id="pityProgressBar" class="h-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-300 rounded-full transition-all duration-500" style="width: 33%"></div>
+            </div>
+        </div>
+
+        <!-- Информационный баннер текущей рулетки -->
+        <div class="flex items-center justify-between mb-2.5 px-1">
+            <div>
+                <h2 id="rouletteTitle" class="text-sm sm:text-base font-extrabold text-white tracking-tight">Рулетка госномеров</h2>
+                <p id="rouletteSubtitle" class="text-[11px] text-gray-400">Выбей блатной номер и сразу выведи на аккаунт</p>
+            </div>
+            <button id="dailyBonusBtn" onclick="claimDailyBonus()" class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 active:scale-95 transition flex items-center gap-1 shrink-0">
+                <span>🎁</span> <span id="dailyBonusText">+1 Бонус</span>
+            </button>
+        </div>
+
+        <!-- Блок горизонтальной рулетки -->
+        <section class="roulette-viewport rounded-2xl h-40 mb-4 flex items-center relative">
+            <!-- Центральная стрелка-указатель -->
+            <div id="centerPointer" class="center-pointer"></div>
+
+            <!-- Горизонтальная лента с карточками -->
+            <div id="rouletteTrack" class="flex items-center gap-3 px-4 will-change-transform">
+                <!-- Генерируется через JS -->
+            </div>
+        </section>
+
+        <!-- Кнопка запуска рулетки + Быстрые кнопки вовлечения -->
+        <div class="mb-5 flex flex-col gap-2">
+            <button id="spinButton" onclick="startSpin()" class="w-full py-3.5 sm:py-4 rounded-2xl font-black text-base uppercase tracking-wider text-white spin-btn-active transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2.5">
+                <svg id="spinBtnIcon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                <span id="spinBtnText">Крутить бесплатно (3)</span>
+            </button>
+
+            <!-- Кнопка Поделиться с другом за +2 спина и Быстрый вывод -->
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="shareWithFriend()" class="py-2.5 px-3 rounded-xl bg-[#181c29] hover:bg-[#1f2436] border border-blue-500/30 text-blue-400 text-[11px] font-extrabold flex items-center justify-center gap-1.5 active:scale-95 transition">
+                    <span>👥 Другу</span>
+                    <span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-white text-[10px]">+2 спина</span>
+                </button>
+                <button onclick="redirectToOffer()" class="py-2.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-[11px] font-extrabold flex items-center justify-center gap-1.5 active:scale-95 transition">
+                    <span>🚀 Вывести призы</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Инвентарь полученных призов -->
+        <section id="inventorySection" class="mb-5 hidden">
+            <div class="bg-gradient-to-b from-[#181c29] to-[#12151f] border border-amber-500/40 rounded-2xl p-3.5 shadow-lg shadow-amber-500/5">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <span>🎁</span> Ваши призы к выводу
+                    </span>
+                    <span class="text-[10px] font-bold text-red-400 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                        ⏳ Сгорят через: <span id="inventoryTimer" class="font-mono font-black">14:59</span>
+                    </span>
+                </div>
+                <div id="inventoryList" class="flex flex-col gap-2 max-h-36 overflow-y-auto pr-1 mb-3">
+                    <!-- Список выбитых призов -->
+                </div>
+                <button onclick="redirectToOffer()" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/25 active:scale-98 transition flex items-center justify-center gap-2">
+                    <span>Забрать все призы на аккаунт</span>
+                    <span>→</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Возможные призы в пуле -->
+        <section class="mb-4">
+            <div class="flex items-center justify-between mb-2.5 px-1">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">Содержимое рулетки</h3>
+                <span class="text-[11px] text-emerald-400 font-semibold">Шанс дропа 100%</span>
+            </div>
+            <div id="prizePoolGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                <!-- Генерируется через JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Модальное окно выигрыша (Result Modal) -->
+    <div id="resultModal" onclick="if(event.target === this) closeResultModal()" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 transition-opacity duration-300">
+        <!-- Карточка результата -->
+        <div id="modalCard" class="relative z-50 w-full max-w-sm bg-[#161923] border border-white/15 rounded-3xl p-5 text-center shadow-2xl transform scale-90 transition-transform duration-300 overflow-hidden">
+            
+            <!-- Кнопка закрытия (крестик для выхода и смены режима) -->
+            <button onclick="closeResultModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 text-gray-300 hover:text-white flex items-center justify-center text-sm font-bold transition z-30" title="Закрыть">
+                ✕
+            </button>
+
+            <!-- Фоновое свечение внутри модалки -->
+            <div id="modalGlow" class="absolute -top-24 left-1/2 -translate-x-1/2 w-56 h-56 bg-amber-500/25 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Таймер сгорания награды (FOMO) -->
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/15 border border-red-500/30 text-red-300 text-[11px] font-extrabold mb-2">
+                <span>⏳ Бронь приза:</span>
+                <span id="modalUrgencyTimer" class="font-mono text-white">04:59</span>
+            </div>
+
+            <h3 id="modalTitle" class="text-lg font-black text-white mb-3">Поздравляем! Вы выбили:</h3>
+
+            <!-- Контейнер для крупного показа приза -->
+            <div id="modalPrizeShowcase" class="my-3 p-4 rounded-2xl bg-[#0e1017] border border-white/10 flex flex-col items-center justify-center relative">
+                <!-- Заполняется динамически -->
+            </div>
+
+            <!-- Уведомление о зачислении -->
+            <div id="claimSuccessBanner" class="hidden mb-3 p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span id="claimSuccessText">Перенаправляем на страницу получения...</span>
+            </div>
+
+            <!-- Кнопки действий (Главный фокус на кнопке ЗАБРАТЬ НА АККАУНТ) -->
+            <div class="flex flex-col gap-2 mt-4">
+                <button id="claimPrizeBtn" onclick="claimCurrentPrize()" class="w-full py-4 rounded-xl font-black text-sm uppercase tracking-wider bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white shadow-xl shadow-emerald-500/30 hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 animate-pulse">
+                    <span>🚀 ЗАБРАТЬ ПРИЗ НА АККАУНТ</span>
+                </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="spinAgainFromModal()" class="w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 active:scale-[0.98] transition">
+                        Крутить еще
+                    </button>
+                    <button onclick="shareWithFriend()" class="w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 active:scale-[0.98] transition">
+                        👥 +2 спина
+                    </button>
+                </div>
+                <!-- Кнопка возврата к рулетке для переключения на голду/номера -->
+                <button onclick="closeResultModal()" class="w-full py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/5 transition flex items-center justify-center gap-1.5 active:scale-95">
+                    <span>← Вернуться к рулеткам (сменить режим)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Промежуточное окно бронирования приза (Reservation Overlay) -->
+    <div id="reservationOverlay" class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-black/90 backdrop-blur-lg">
+        <div class="w-full max-w-xs bg-[#141824] border border-emerald-500/40 rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-44 h-44 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <!-- Спиннер загрузки -->
+            <div class="relative w-14 h-14 mx-auto mb-4 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full border-4 border-emerald-500/20"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin"></div>
+                <span class="text-xl">🔐</span>
+            </div>
+
+            <h4 id="reservationTitle" class="text-sm font-black text-white uppercase tracking-wide mb-1.5">Бронирование награды</h4>
+            <p id="reservationStatus" class="text-xs text-emerald-400 font-semibold min-h-[34px] flex items-center justify-center">
+                Связь с сервером Black Russia...
+            </p>
+
+            <!-- Прогресс-бар бронирования -->
+            <div class="w-full h-2 bg-black/60 rounded-full overflow-hidden mt-3 border border-white/10 p-0.5">
+                <div id="reservationBar" class="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-amber-400 rounded-full transition-all duration-300" style="width: 15%"></div>
+            </div>
+
+            <div class="mt-3 text-[10px] text-gray-400 font-mono" id="reservationPromoCode">
+                ID сессии: #BR-884920
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ==========================================
+         * 1. БАЗА ПРИЗОВ И РЕДКОСТЕЙ
+         * ========================================== */
+        const OFFER_URL = 'https://formealwork.net/w/JOZdvXmna';
+
+        const RARITY_STYLES = {
+            legendary: {
+                name: 'Легендарный',
+                border: 'border-amber-400/60',
+                bg: 'from-amber-500/20 to-[#141722]',
+                badge: 'bg-amber-500/20 text-amber-300 border-amber-400/40'
+            },
+            epic: {
+                name: 'Эпический',
+                border: 'border-purple-500/50',
+                bg: 'from-purple-500/20 to-[#141722]',
+                badge: 'bg-purple-500/20 text-purple-300 border-purple-400/40'
+            },
+            rare: {
+                name: 'Редкий',
+                border: 'border-blue-500/40',
+                bg: 'from-blue-500/15 to-[#141722]',
+                badge: 'bg-blue-500/20 text-blue-300 border-blue-400/40'
+            }
+        };
+
+        const PRIZE_POOLS = {
+            plates: [
+                { id: 'p1', type: 'plate', code: 'А777АА', region: '777', valueText: 'Гос: 15.000.000 ₽', rarityKey: 'legendary' },
+                { id: 'p2', type: 'plate', code: 'Е777КХ', region: '777', valueText: 'Гос: 20.000.000 ₽', rarityKey: 'legendary' },
+                { id: 'p3', type: 'plate', code: 'В777ОР', region: '777', valueText: 'Гос: 12.500.000 ₽', rarityKey: 'epic' },
+                { id: 'p4', type: 'plate', code: 'Х999ХХ', region: '199', valueText: 'Гос: 18.000.000 ₽', rarityKey: 'legendary' },
+                { id: 'p5', type: 'plate', code: 'А001АА', region: '77', valueText: 'Гос: 16.000.000 ₽', rarityKey: 'legendary' },
+                { id: 'p6', type: 'plate', code: 'С777СС', region: '777', valueText: 'Гос: 14.000.000 ₽', rarityKey: 'legendary' },
+                { id: 'p7', type: 'plate', code: 'О777ОО', region: '777', valueText: 'Гос: 10.000.000 ₽', rarityKey: 'epic' },
+                { id: 'p8', type: 'plate', code: 'К777КК', region: '99', valueText: 'Гос: 9.500.000 ₽', rarityKey: 'epic' },
+                { id: 'p9', type: 'plate', code: 'Т888ТТ', region: '177', valueText: 'Гос: 8.000.000 ₽', rarityKey: 'epic' },
+                { id: 'p10', type: 'plate', code: 'М001ММ', region: '99', valueText: 'Гос: 6.500.000 ₽', rarityKey: 'rare' },
+                { id: 'p11', type: 'plate', code: 'У999УУ', region: '77', valueText: 'Гос: 7.000.000 ₽', rarityKey: 'rare' },
+                { id: 'p12', type: 'plate', code: 'Н555НН', region: '777', valueText: 'Гос: 5.500.000 ₽', rarityKey: 'rare' }
+            ],
+            gold: [
+                { id: 'g1', type: 'gold', amount: '10000 G', statusText: 'Супер-Дроп SO2', rarityKey: 'legendary' },
+                { id: 'g2', type: 'gold', amount: '5000 G', statusText: 'Моментальный вывод', rarityKey: 'legendary' },
+                { id: 'g3', type: 'gold', amount: '3500 G', statusText: 'По ID аккаунта', rarityKey: 'legendary' },
+                { id: 'g4', type: 'gold', amount: '2500 G', statusText: 'Промо-пакет SO2', rarityKey: 'epic' },
+                { id: 'g5', type: 'gold', amount: '2000 G', statusText: 'Быстрый трансфер', rarityKey: 'epic' },
+                { id: 'g6', type: 'gold', amount: '1500 G', statusText: 'Бонус-пак SO2', rarityKey: 'epic' },
+                { id: 'g7', type: 'gold', amount: '1000 G', statusText: 'Пополнение баланса', rarityKey: 'rare' },
+                { id: 'g8', type: 'gold', amount: '750 G', statusText: 'Призовой промокод', rarityKey: 'rare' },
+                { id: 'g9', type: 'gold', amount: '500 G', statusText: 'Стартовый пакет', rarityKey: 'rare' },
+                { id: 'g10', type: 'gold', amount: '300 G', statusText: 'Начальный бонус', rarityKey: 'rare' },
+                { id: 'g11', type: 'gold', amount: '150 G', statusText: 'Мини-кейс', rarityKey: 'rare' },
+                { id: 'g12', type: 'gold', amount: 'Karambit Gold', statusText: 'Скин-гарант SO2', rarityKey: 'legendary' }
+            ]
+        };
+
+        /* ==========================================
+         * 2. СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+         * ========================================== */
+        let currentTab = 'plates';
+        let isSpinning = false;
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        let inventory = [];
+        try {
+            inventory = JSON.parse(localStorage.getItem('br_so2_inventory') || '[]');
+        } catch (e) {
+            inventory = [];
+        }
+
+        let spinsLeft = parseInt(localStorage.getItem('br_so2_spins') || '3', 10);
+        if (isNaN(spinsLeft)) spinsLeft = 3;
+
+        let spinCountForPity = parseInt(localStorage.getItem('br_so2_pity') || '1', 10);
+        if (isNaN(spinCountForPity)) spinCountForPity = 1;
+
+        let dailyClaimed = localStorage.getItem('br_so2_daily') === new Date().toDateString();
+        let currentWinningPrize = null;
+        let currentPrizeClaimed = false;
+        let generatedTrackItems = [];
+        let isRedirecting = false;
+        let modalSeconds = 4 * 60 + 59;
+
+        const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+
+        const FAKE_FEED_EVENTS = [
+            { user: '@br_maga77', prize: 'А777АА 777 (15КК)', action: 'вывел на сервер Grozny' },
+            { user: '@so2_sniper', prize: '5000 G', action: 'забрал на ID аккаунта' },
+            { user: '@khasan_05', prize: 'В777ОР 777 (12.5КК)', action: 'успешно получил в игре' },
+            { user: '@danya_standoff', prize: '3500 G', action: 'моментально вывел' },
+            { user: '@oper_style99', prize: 'Е777КХ 777 (20КК)', action: 'забрал блатной номер' },
+            { user: '@timur_br', prize: 'Х999ХХ 199 (18КК)', action: 'активировал промо-приз' },
+            { user: '@gold_hunter', prize: '2500 G', action: 'получил зачисление' },
+            { user: '@maloy_777', prize: 'О777ОО 777 (10КК)', action: 'вывел через кнопку' }
+        ];
+
+        const TRACK_ITEMS_COUNT = 55;
+        const WINNING_INDEX = 42;
+        const CARD_WIDTH = 132;
+        const CARD_GAP = 12;
+
+        /* ==========================================
+         * 3. ЗВУКОВЫЕ ЭФФЕКТЫ И ВИБРАЦИЯ TELEGRAM
+         * ========================================== */
+        function triggerHaptic(type, styleOrStatus) {
+            try {
+                if (tg && tg.HapticFeedback) {
+                    if (type === 'impact') {
+                        tg.HapticFeedback.impactOccurred(styleOrStatus || 'medium');
+                    } else if (type === 'notification') {
+                        tg.HapticFeedback.notificationOccurred(styleOrStatus || 'success');
+                    } else if (type === 'selection') {
+                        tg.HapticFeedback.selectionChanged();
+                    }
+                    return;
+                }
+                if (navigator.vibrate) {
+                    navigator.vibrate(type === 'notification' ? [40, 60, 90] : 15);
+                }
+            } catch (e) {}
+        }
+
+        function fireWinConfetti() {
+            if (typeof confetti !== 'function') return;
+            try {
+                confetti({
+                    particleCount: 75,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#f59e0b', '#10b981', '#fbbf24', '#ffffff', '#ea580c']
+                });
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 45,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0, y: 0.65 },
+                        colors: ['#f59e0b', '#fbbf24', '#10b981']
+                    });
+                    confetti({
+                        particleCount: 45,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1, y: 0.65 },
+                        colors: ['#f59e0b', '#fbbf24', '#10b981']
+                    });
+                }, 220);
+            } catch (e) {}
+        }
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTickSound() {
+            if (!soundEnabled || !audioCtx) return;
+            try {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(780, now);
+                osc.frequency.exponentialRampToValueAtTime(190, now + 0.032);
+                gain.gain.setValueAtTime(0.11, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.032);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.035);
+            } catch (e) {}
+        }
+
+        function playWinSound() {
+            if (!soundEnabled || !audioCtx) return;
+            try {
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+                notes.forEach((freq, idx) => {
+                    const start = audioCtx.currentTime + idx * 0.085;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, start);
+                    gain.gain.setValueAtTime(0.14, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.38);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(start);
+                    osc.stop(start + 0.4);
+                });
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            triggerHaptic('selection');
+            const onIcon = document.getElementById('soundOnIcon');
+            const offIcon = document.getElementById('soundOffIcon');
+            if (soundEnabled) {
+                initAudio();
+                onIcon.classList.remove('hidden');
+                offIcon.classList.add('hidden');
+                showToast('🔊 Звук включен');
+            } else {
+                onIcon.classList.add('hidden');
+                offIcon.classList.remove('hidden');
+                showToast('🔇 Звук выключен');
+            }
+        }
+
+        /* ==========================================
+         * 4. ОТРИСОВКА КАРТОЧЕК И ИНТЕРФЕЙСА
+         * ========================================== */
+        function createCardHTML(item) {
+            const style = RARITY_STYLES[item.rarityKey] || RARITY_STYLES.rare;
+            if (item.type === 'plate') {
+                return `
+                    <div class="w-[132px] h-[126px] shrink-0 rounded-2xl bg-gradient-to-b ${style.bg} border ${style.border} p-2.5 flex flex-col items-center justify-between shadow-md">
+                        <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${style.badge}">${style.name}</span>
+                        <div class="ru-plate my-auto">
+                            <div class="ru-plate-main">${item.code}</div>
+                            <div class="ru-plate-region">
+                                <span>${item.region}</span>
+                                <div class="ru-flag"></div>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold text-emerald-400 truncate max-w-full">${item.valueText}</span>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="w-[132px] h-[126px] shrink-0 rounded-2xl bg-gradient-to-b ${style.bg} border ${style.border} p-2.5 flex flex-col items-center justify-between shadow-md">
+                        <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${style.badge}">${style.name}</span>
+                        <div class="my-auto flex flex-col items-center">
+                            <span class="text-2xl">🪙</span>
+                            <span class="text-sm font-black text-amber-400 tracking-tight">${item.amount}</span>
+                        </div>
+                        <span class="text-[10px] font-semibold text-gray-300 truncate max-w-full">${item.statusText}</span>
+                    </div>
+                `;
+            }
+        }
+
+        function buildRouletteTrack() {
+            const track = document.getElementById('rouletteTrack');
+            if (!track) return;
+            const pool = PRIZE_POOLS[currentTab];
+            generatedTrackItems = [];
+            for (let i = 0; i < TRACK_ITEMS_COUNT; i++) {
+                const randomItem = pool[Math.floor(Math.random() * pool.length)];
+                generatedTrackItems.push(randomItem);
+            }
+            track.style.transition = 'none';
+            track.style.transform = 'translateX(0px)';
+            track.innerHTML = generatedTrackItems.map(item => createCardHTML(item)).join('');
+        }
+
+        function renderPrizePoolGrid() {
+            const grid = document.getElementById('prizePoolGrid');
+            if (!grid) return;
+            const pool = PRIZE_POOLS[currentTab];
+            grid.innerHTML = pool.map(item => {
+                const style = RARITY_STYLES[item.rarityKey] || RARITY_STYLES.rare;
+                if (item.type === 'plate') {
+                    return `
+                        <div class="rounded-2xl bg-gradient-to-b ${style.bg} border ${style.border} p-3 flex flex-col items-center justify-between gap-2">
+                            <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${style.badge}">${style.name}</span>
+                            <div class="ru-plate">
+                                <div class="ru-plate-main">${item.code}</div>
+                                <div class="ru-plate-region">
+                                    <span>${item.region}</span>
+                                    <div class="ru-flag"></div>
+                                </div>
+                            </div>
+                            <span class="text-[11px] font-bold text-emerald-400">${item.valueText}</span>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="rounded-2xl bg-gradient-to-b ${style.bg} border ${style.border} p-3 flex flex-col items-center justify-between gap-1.5">
+                            <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${style.badge}">${style.name}</span>
+                            <div class="text-2xl my-0.5">🪙</div>
+                            <div class="text-sm font-black text-amber-400">${item.amount}</div>
+                            <span class="text-[10px] text-gray-400">${item.statusText}</span>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        function switchTab(tab) {
+            if (isSpinning || currentTab === tab) return;
+            triggerHaptic('selection');
+            currentTab = tab;
+
+            const tabPlates = document.getElementById('tabPlates');
+            const tabGold = document.getElementById('tabGold');
+            const title = document.getElementById('rouletteTitle');
+            const subtitle = document.getElementById('rouletteSubtitle');
+
+            if (tab === 'plates') {
+                tabPlates.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-lg shadow-orange-600/25';
+                tabGold.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 text-gray-400 hover:text-white';
+                title.textContent = 'Рулетка госномеров';
+                subtitle.textContent = 'Выбей блатной номер и сразу выведи на аккаунт';
+            } else {
+                tabGold.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-black shadow-lg shadow-amber-500/25';
+                tabPlates.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 text-gray-400 hover:text-white';
+                title.textContent = 'Рулетка Голды Standoff 2';
+                subtitle.textContent = 'Выбей до 5000 G и моментально забери по ID';
+            }
+
+            buildRouletteTrack();
+            renderPrizePoolGrid();
+        }
+
+        /* ==========================================
+         * 5. МЕХАНИКА ВРАЩЕНИЯ РУЛЕТКИ И БОНУСОВ
+         * ========================================== */
+        function updateSpinsAndPityUI() {
+            const spinsLeftEl = document.getElementById('spinsLeftCount');
+            const spinBtnText = document.getElementById('spinBtnText');
+            const pityText = document.getElementById('pityCounterText');
+            const pityBar = document.getElementById('pityProgressBar');
+            const dailyBtn = document.getElementById('dailyBonusBtn');
+            const dailyText = document.getElementById('dailyBonusText');
+
+            if (spinsLeftEl) spinsLeftEl.textContent = spinsLeft;
+            if (!isSpinning && spinBtnText) {
+                spinBtnText.textContent = spinsLeft > 0 ? `Крутить бесплатно (${spinsLeft})` : '👥 +2 спина за друга';
+            }
+
+            const stepsDone = spinCountForPity % 3;
+            const remaining = 3 - stepsDone;
+            const percent = remaining === 1 ? 100 : (remaining === 2 ? 66 : 33);
+
+            if (pityText) {
+                pityText.textContent = remaining === 1
+                    ? 'СЛЕДУЮЩИЙ СПИН!'
+                    : `${remaining} спина`;
+            }
+            if (pityBar) pityBar.style.width = `${percent}%`;
+
+            if (dailyClaimed && dailyBtn && dailyText) {
+                dailyText.textContent = 'Получено ✓';
+                dailyBtn.classList.add('opacity-50');
+            }
+        }
+
+        function claimDailyBonus() {
+            triggerHaptic('impact', 'light');
+            if (dailyClaimed) {
+                showToast('Ежедневный бонус уже получен! Пригласи друга за +2 спина');
+                return;
+            }
+            dailyClaimed = true;
+            try {
+                localStorage.setItem('br_so2_daily', new Date().toDateString());
+                spinsLeft += 1;
+                localStorage.setItem('br_so2_spins', String(spinsLeft));
+            } catch (e) {}
+            triggerHaptic('notification', 'success');
+            updateSpinsAndPityUI();
+            showToast('🎁 Ежедневный бонус: +1 бесплатный спин начислен!');
+        }
+
+        function shareWithFriend() {
+            triggerHaptic('impact', 'medium');
+            const shareText = encodeURIComponent('🔥 Забирай блатные номера Black Russia и 5000 Голды Standoff 2 бесплатно в рулетке! Мне уже выпал топ приз:');
+            const shareUrl = encodeURIComponent(window.location.href);
+            const fullShareLink = `https://t.me/share/url?url=${shareUrl}&text=${shareText}`;
+
+            if (tg && typeof tg.openTelegramLink === 'function') {
+                tg.openTelegramLink(fullShareLink);
+            } else {
+                window.open(fullShareLink, '_blank');
+            }
+
+            setTimeout(() => {
+                spinsLeft += 2;
+                try {
+                    localStorage.setItem('br_so2_spins', String(spinsLeft));
+                } catch (e) {}
+                updateSpinsAndPityUI();
+                showToast('🎉 +2 бонусных спина за друга начислены!');
+            }, 1200);
+        }
+
+        function startSpin() {
+            if (isSpinning) return;
+            if (spinsLeft <= 0) {
+                shareWithFriend();
+                return;
+            }
+            initAudio();
+            triggerHaptic('impact', 'medium');
+            isSpinning = true;
+            currentPrizeClaimed = false;
+
+            spinsLeft -= 1;
+            spinCountForPity += 1;
+            try {
+                localStorage.setItem('br_so2_spins', String(spinsLeft));
+                localStorage.setItem('br_so2_pity', String(spinCountForPity));
+            } catch (e) {}
+            updateSpinsAndPityUI();
+
+            const spinBtn = document.getElementById('spinButton');
+            const spinBtnText = document.getElementById('spinBtnText');
+            const spinBtnIcon = document.getElementById('spinBtnIcon');
+
+            spinBtn.disabled = true;
+            spinBtnText.textContent = 'Крутим барабан...';
+            spinBtnIcon.classList.add('animate-spin');
+
+            buildRouletteTrack();
+
+            const pool = PRIZE_POOLS[currentTab];
+            const legendaryPool = pool.filter(item => item.rarityKey === 'legendary');
+            const highTierPool = pool.filter(item => item.rarityKey === 'legendary' || item.rarityKey === 'epic');
+
+            // Каждый 3-й спин гарантированно выдает Легендарку по шкале гаранта
+            let winner;
+            if (spinCountForPity % 3 === 0 && legendaryPool.length > 0) {
+                winner = legendaryPool[Math.floor(Math.random() * legendaryPool.length)];
+            } else if (Math.random() < 0.7) {
+                winner = highTierPool[Math.floor(Math.random() * highTierPool.length)];
+            } else {
+                winner = pool[Math.floor(Math.random() * pool.length)];
+            }
+
+            currentWinningPrize = winner;
+            generatedTrackItems[WINNING_INDEX] = winner;
+
+            const trackEl = document.getElementById('rouletteTrack');
+            trackEl.innerHTML = generatedTrackItems.map(item => createCardHTML(item)).join('');
+
+            const viewport = trackEl.parentElement;
+            const viewportCenter = viewport.clientWidth / 2;
+            const itemFullWidth = CARD_WIDTH + CARD_GAP;
+            const winningCardCenter = 16 + (WINNING_INDEX * itemFullWidth) + (CARD_WIDTH / 2);
+            const randomJitter = (Math.random() - 0.5) * 36;
+            const targetTranslateX = -(winningCardCenter - viewportCenter + randomJitter);
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    trackEl.style.transition = 'transform 4.4s cubic-bezier(0.12, 0.8, 0.18, 1)';
+                    trackEl.style.transform = `translateX(${targetTranslateX}px)`;
+                });
+            });
+
+            let lastTickIndex = 0;
+            const spinStartTime = performance.now();
+            const spinDuration = 4400;
+
+            function tickWatcher(now) {
+                const elapsed = now - spinStartTime;
+                if (elapsed < spinDuration && isSpinning) {
+                    const progress = elapsed / spinDuration;
+                    const eased = 1 - Math.pow(1 - progress, 3.5);
+                    const currentX = Math.abs(targetTranslateX * eased);
+                    const currentIndex = Math.floor(currentX / itemFullWidth);
+                    if (currentIndex > lastTickIndex) {
+                        lastTickIndex = currentIndex;
+                        playTickSound();
+                        triggerHaptic('impact', 'medium');
+                    }
+                    requestAnimationFrame(tickWatcher);
+                }
+            }
+            requestAnimationFrame(tickWatcher);
+
+            setTimeout(() => {
+                finishSpin();
+            }, spinDuration + 100);
+        }
+
+        function finishSpin() {
+            const spinBtn = document.getElementById('spinButton');
+            const spinBtnIcon = document.getElementById('spinBtnIcon');
+
+            spinBtnIcon.classList.remove('animate-spin');
+            spinBtn.disabled = false;
+            isSpinning = false;
+            updateSpinsAndPityUI();
+
+            inventory.unshift({
+                ...currentWinningPrize,
+                claimedAt: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+            });
+            try {
+                localStorage.setItem('br_so2_inventory', JSON.stringify(inventory));
+            } catch (e) {}
+            updateInventoryUI();
+
+            playWinSound();
+            triggerHaptic('notification', 'success');
+            fireWinConfetti();
+            openResultModal(currentWinningPrize);
+        }
+
+        /* ==========================================
+         * 6. МОДАЛЬНОЕ ОКНО ВЫИГРЫША И БРОНИРОВАНИЕ
+         * ========================================== */
+        function openResultModal(prize) {
+            const modal = document.getElementById('resultModal');
+            const card = document.getElementById('modalCard');
+            const showcase = document.getElementById('modalPrizeShowcase');
+            const claimBanner = document.getElementById('claimSuccessBanner');
+            const claimBtn = document.getElementById('claimPrizeBtn');
+
+            modalSeconds = 4 * 60 + 59; // Сброс таймера брони для нового выигрыша
+            claimBanner.classList.add('hidden');
+            claimBtn.classList.remove('hidden');
+
+            const style = RARITY_STYLES[prize.rarityKey] || RARITY_STYLES.rare;
+            if (prize.type === 'plate') {
+                showcase.innerHTML = `
+                    <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${style.badge} mb-3">${style.name} приз</span>
+                    <div class="ru-plate scale-125 my-3">
+                        <div class="ru-plate-main">${prize.code}</div>
+                        <div class="ru-plate-region">
+                            <span>${prize.region}</span>
+                            <div class="ru-flag"></div>
+                        </div>
+                    </div>
+                    <div class="text-sm font-black text-emerald-400 mt-2">${prize.valueText}</div>
+                `;
+            } else {
+                showcase.innerHTML = `
+                    <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${style.badge} mb-2">${style.name} приз</span>
+                    <div class="text-5xl my-2">🪙</div>
+                    <div class="text-2xl font-black text-amber-400">${prize.amount}</div>
+                    <div class="text-xs text-gray-400 mt-1">${prize.statusText}</div>
+                `;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            requestAnimationFrame(() => {
+                modal.classList.remove('opacity-0');
+                card.classList.remove('scale-90');
+                card.classList.add('scale-100');
+            });
+        }
+
+        function closeResultModal() {
+            triggerHaptic('selection');
+            const modal = document.getElementById('resultModal');
+            const card = document.getElementById('modalCard');
+            modal.classList.add('opacity-0');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-90');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 250);
+        }
+
+        function spinAgainFromModal() {
+            closeResultModal();
+            setTimeout(() => {
+                startSpin();
+            }, 280);
+        }
+
+        /* Промежуточная анимация "Бронирование приза" на 1.5 сек перед редиректом */
+        function redirectToOffer() {
+            if (isRedirecting) return;
+            isRedirecting = true;
+            triggerHaptic('notification', 'success');
+
+            const overlay = document.getElementById('reservationOverlay');
+            const statusEl = document.getElementById('reservationStatus');
+            const barEl = document.getElementById('reservationBar');
+            const promoEl = document.getElementById('reservationPromoCode');
+
+            const isGold = currentTab === 'gold' || (currentWinningPrize && currentWinningPrize.type === 'gold');
+            const serverName = isGold ? 'Standoff 2' : 'Black Russia';
+            const randomCode = 'PROMO-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+
+            if (overlay && statusEl && barEl) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+                barEl.style.width = '20%';
+                statusEl.textContent = `Связь с сервером ${serverName}...`;
+                if (promoEl) promoEl.textContent = `Генерация сессии...`;
+
+                setTimeout(() => {
+                    triggerHaptic('impact', 'light');
+                    barEl.style.width = '65%';
+                    statusEl.textContent = 'Генерация персонального промокода...';
+                    if (promoEl) promoEl.textContent = `Код брони: #${randomCode}`;
+                }, 500);
+
+                setTimeout(() => {
+                    triggerHaptic('notification', 'success');
+                    barEl.style.width = '100%';
+                    statusEl.textContent = 'Приз закреплен за вашим ID! Переход...';
+                }, 1050);
+
+                setTimeout(() => {
+                    window.location.href = OFFER_URL;
+                    setTimeout(() => { isRedirecting = false; }, 1000);
+                }, 1550);
+            } else {
+                window.location.href = OFFER_URL;
+            }
+        }
+
+        function claimCurrentPrize() {
+            currentPrizeClaimed = true;
+            const claimBanner = document.getElementById('claimSuccessBanner');
+            const claimBtn = document.getElementById('claimPrizeBtn');
+            if (claimBanner) claimBanner.classList.remove('hidden');
+            if (claimBtn) claimBtn.classList.add('hidden');
+
+            redirectToOffer();
+        }
+
+        function updateInventoryUI() {
+            const badge = document.getElementById('inventoryCountBadge');
+            const section = document.getElementById('inventorySection');
+            const list = document.getElementById('inventoryList');
+
+            if (badge) badge.textContent = inventory.length;
+            if (!section || !list) return;
+
+            if (inventory.length === 0) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            section.classList.remove('hidden');
+            list.innerHTML = inventory.map(item => {
+                if (item.type === 'plate') {
+                    return `
+                        <div onclick="redirectToOffer()" class="cursor-pointer flex items-center justify-between bg-[#0e1017] hover:bg-white/5 border border-white/10 rounded-xl px-3 py-2 transition">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-sm">🚘</span>
+                                <div>
+                                    <div class="text-xs font-extrabold text-white">${item.code} ${item.region}</div>
+                                    <div class="text-[10px] text-emerald-400 font-semibold">${item.valueText}</div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-extrabold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-1 rounded-lg">Забрать →</span>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div onclick="redirectToOffer()" class="cursor-pointer flex items-center justify-between bg-[#0e1017] hover:bg-white/5 border border-white/10 rounded-xl px-3 py-2 transition">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-sm">🪙</span>
+                                <div>
+                                    <div class="text-xs font-extrabold text-amber-400">${item.amount}</div>
+                                    <div class="text-[10px] text-gray-400">${item.statusText}</div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-1 rounded-lg">Забрать →</span>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        /* ==========================================
+         * 7. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И ТАЙМЕРЫ
+         * ========================================== */
+        let toastTimeout = null;
+        function showToast(text) {
+            const container = document.getElementById('toastContainer');
+            const textEl = document.getElementById('toastText');
+            if (!container || !textEl) return;
+            textEl.textContent = text;
+            container.classList.remove('opacity-0', '-translate-y-2');
+            container.classList.add('opacity-100', 'translate-y-0');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                container.classList.remove('opacity-100', 'translate-y-0');
+                container.classList.add('opacity-0', '-translate-y-2');
+            }, 2600);
+        }
+
+        function startLiveFeedAndTimers() {
+            const feedEl = document.getElementById('liveFeedItem');
+            let feedIdx = 0;
+            setInterval(() => {
+                if (!feedEl) return;
+                feedIdx = (feedIdx + 1) % FAKE_FEED_EVENTS.length;
+                const ev = FAKE_FEED_EVENTS[feedIdx];
+                feedEl.style.opacity = '0';
+                setTimeout(() => {
+                    feedEl.innerHTML = `Игрок <b class="text-white">${ev.user}</b> ${ev.action}: <b class="text-amber-400">${ev.prize}</b>`;
+                    feedEl.style.opacity = '1';
+                }, 250);
+            }, 3500);
+
+            let secondsLeft = 14 * 60 + 59;
+            setInterval(() => {
+                secondsLeft = secondsLeft > 0 ? secondsLeft - 1 : 899;
+                modalSeconds = modalSeconds > 0 ? modalSeconds - 1 : 299;
+
+                const formatTime = (sec) => {
+                    const m = String(Math.floor(sec / 60)).padStart(2, '0');
+                    const s = String(sec % 60).padStart(2, '0');
+                    return `${m}:${s}`;
+                };
+
+                const invTimer = document.getElementById('inventoryTimer');
+                const modTimer = document.getElementById('modalUrgencyTimer');
+                if (invTimer) invTimer.textContent = formatTime(secondsLeft);
+                if (modTimer) modTimer.textContent = formatTime(modalSeconds);
+            }, 1000);
+        }
+
+        window.onload = function () {
+            if (tg) {
+                try {
+                    tg.ready();
+                    tg.expand();
+                } catch (e) {}
+            }
+            buildRouletteTrack();
+            renderPrizePoolGrid();
+            updateInventoryUI();
+            updateSpinsAndPityUI();
+            startLiveFeedAndTimers();
+        };
+    </script>
+</body>
+</html>
