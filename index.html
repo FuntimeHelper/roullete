@@ -767,9 +767,9 @@
 
         function shareWithFriend() {
             triggerHaptic('impact', 'medium');
-            const shareText = encodeURIComponent('🔥 Забирай блатные номера Black Russia и 5000 Голды Standoff 2 бесплатно в рулетке! Мне уже выпал топ приз:');
-            const shareUrl = encodeURIComponent(window.location.href);
-            const fullShareLink = `https://t.me/share/url?url=${shareUrl}&text=${shareText}`;
+           const shareText = encodeURIComponent('🔥 Забирай блатные номера Black Russia и 5000 Голды Standoff 2 бесплатно в рулетке! Мне уже выпал топ приз:');
+           const shareUrl = encodeURIComponent('https://t.me/br_gold_drop_bot?startapp=true');
+           const fullShareLink = `https://t.me/share/url?url=${shareUrl}&text=${shareText}`;
 
             if (tg && typeof tg.openTelegramLink === 'function') {
                 tg.openTelegramLink(fullShareLink);
