@@ -37,13 +37,15 @@
             left: -9999px !important;
         }
 
-        /* Контейнер рулетки */
+        /* Контейнер рулетки (оптимизирован для плавности на мобильных) */
         .roulette-viewport {
             position: relative;
             overflow: hidden;
             background: linear-gradient(180deg, #121521 0%, #0d1018 100%);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.85);
+            transform: translateZ(0);
+            will-change: transform;
         }
         .roulette-viewport::before,
         .roulette-viewport::after {
@@ -146,9 +148,18 @@
             border: 0.5px solid #ccc;
             background: linear-gradient(to bottom, #fff 33.3%, #0039a6 33.3%, #0039a6 66.6%, #d52b1e 66.6%);
         }
+
+        /* Плавное появление вкладок */
+        .app-view {
+            animation: fadeInView 0.22s ease-out;
+        }
+        @keyframes fadeInView {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
-<body class="min-h-screen pb-8">
+<body class="min-h-screen pb-24">
 
     <!-- Всплывающее уведомление (Toast) -->
     <div id="toastContainer" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 -translate-y-2">
@@ -160,9 +171,8 @@
 
     <main class="max-w-md mx-auto px-3 pt-3">
         
-        <!-- Компактная адаптивная шапка (Header) -->
-        <header class="flex items-center justify-between gap-2 bg-[#141722] border border-white/10 rounded-2xl p-2.5 mb-3 shadow-lg">
-            <!-- Левая группа: лого и название -->
+        <!-- Шапка (Header) -->
+        <header class="flex items-center justify-between gap-2 bg-[#141722] border border-white/10 rounded-2xl p-2.5 mb-2.5 shadow-lg">
             <div class="flex items-center gap-2 min-w-0 flex-1">
                 <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center font-black text-xs text-white shadow-md shadow-orange-500/20 shrink-0">
                     BR
@@ -172,17 +182,16 @@
                         <h1 class="text-xs sm:text-sm font-black tracking-tight text-white truncate">BR x SO2 DROP</h1>
                         <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
                     </div>
-                    <p class="text-[10px] text-gray-400 truncate">Официальная раздача призов</p>
+                    <p id="headerClanBadge" class="text-[10px] text-gray-400 truncate">Официальная раздача призов</p>
                 </div>
             </div>
 
-            <!-- Правая группа: звук, счетчик и кнопка забрать -->
             <div class="flex items-center gap-1.5 shrink-0">
                 <button id="soundToggleBtn" onclick="toggleSound()" class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-gray-300 transition active:scale-95" title="Звук">
                     <svg id="soundOnIcon" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
                     <svg id="soundOffIcon" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
                 </button>
-                <div class="bg-white/5 border border-white/10 rounded-xl px-2 py-1 text-center min-w-[42px] sm:min-w-[48px]">
+                <div onclick="switchMainView('inventory')" class="cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-2 py-1 text-center min-w-[42px] sm:min-w-[48px] transition">
                     <span class="block text-[8px] sm:text-[9px] text-gray-400 uppercase font-semibold leading-none">Призы</span>
                     <span id="inventoryCountBadge" class="text-[11px] sm:text-xs font-extrabold text-amber-400 leading-tight">0</span>
                 </div>
@@ -192,155 +201,298 @@
             </div>
         </header>
 
-        <!-- Компактная живая лента выигрышей (Live Drop + чат) -->
-        <div class="bg-[#131620] border border-white/10 rounded-xl px-3 py-2 mb-3.5 flex items-center justify-between gap-2 overflow-hidden relative">
+        <!-- Живая лента + Онлайн счетчик (Социальное доказательство / FOMO) -->
+        <div class="bg-[#131620] border border-white/10 rounded-xl px-3 py-2 mb-3.5 flex items-center justify-between gap-2 overflow-hidden relative shadow-inner">
             <div class="flex items-center gap-2 min-w-0 flex-1">
                 <span class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/20 border border-red-500/40 text-[9px] font-black text-red-400 uppercase shrink-0">
                     <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
                     LIVE
                 </span>
                 <div id="liveFeedItem" class="text-[11px] text-gray-300 truncate transition-all duration-300">
-                    Игрок <b class="text-white">@br_maga77</b> выбил <b class="text-amber-400">А777АА 777</b> (15КК)
+                    Игрок <b class="text-white">@br_maga77</b> выбил <b class="text-amber-400">А777АА 777</b> (18КК)
                 </div>
             </div>
-            <span class="text-[10px] text-emerald-400 font-bold shrink-0">только что</span>
-        </div>
-
-        <!-- Переключатель вкладок (Tabs) -->
-        <div class="grid grid-cols-2 gap-1.5 bg-[#14161f] p-1.5 rounded-2xl border border-white/10 mb-3.5">
-            <button id="tabPlates" onclick="switchTab('plates')" class="py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-lg shadow-orange-600/25">
-                <span>🚘</span>
-                <span class="truncate">Рулетка номеров</span>
-            </button>
-            <button id="tabGold" onclick="switchTab('gold')" class="py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 text-gray-400 hover:text-white">
-                <span>🪙</span>
-                <span class="truncate">Голда SO2</span>
-            </button>
-        </div>
-
-        <!-- Прогресс-бар до гарантированного Легендарного приза + Спины -->
-        <div class="bg-[#141722] border border-amber-500/25 rounded-2xl p-2.5 mb-3.5">
-            <div class="flex items-center justify-between text-[11px] mb-1.5">
-                <span class="font-bold text-gray-300 flex items-center gap-1">
-                    <span>🔥</span> До <b class="text-amber-400">ЛЕГЕНДАРНОГО</b> приза: <span id="pityCounterText" class="text-white font-black">2 спина</span>
-                </span>
-                <span class="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 font-extrabold text-[10px]">
-                    Спинов: <span id="spinsLeftCount">3</span>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <span id="liveFeedTime" class="text-[10px] text-emerald-400 font-bold">только что</span>
+                <span class="inline-flex items-center gap-1 text-[9px] text-gray-300 bg-white/5 px-2 py-0.5 rounded-md border border-white/10 font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    👥 Онлайн: <span id="onlineCounter" class="text-white font-black">1,482</span>
                 </span>
             </div>
-            <div class="w-full h-2 bg-black/50 rounded-full overflow-hidden p-0.5 border border-white/5">
-                <div id="pityProgressBar" class="h-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-300 rounded-full transition-all duration-500" style="width: 33%"></div>
-            </div>
         </div>
 
-        <!-- Информационный баннер текущей рулетки -->
-        <div class="flex items-center justify-between mb-2.5 px-1">
-            <div>
-                <h2 id="rouletteTitle" class="text-sm sm:text-base font-extrabold text-white tracking-tight">Рулетка госномеров</h2>
-                <p id="rouletteSubtitle" class="text-[11px] text-gray-400">Выбей блатной номер и сразу выведи на аккаунт</p>
-            </div>
-            <button id="dailyBonusBtn" onclick="claimDailyBonus()" class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 active:scale-95 transition flex items-center gap-1 shrink-0">
-                <span>🎁</span> <span id="dailyBonusText">+1 Бонус</span>
-            </button>
-        </div>
-
-        <!-- Блок горизонтальной рулетки -->
-        <section class="roulette-viewport rounded-2xl h-40 mb-4 flex items-center relative">
-            <!-- Центральная стрелка-указатель -->
-            <div id="centerPointer" class="center-pointer"></div>
-
-            <!-- Горизонтальная лента с карточками -->
-            <div id="rouletteTrack" class="flex items-center gap-3 px-4 will-change-transform">
-                <!-- Генерируется через JS -->
-            </div>
-        </section>
-
-        <!-- Кнопка запуска рулетки + Быстрые кнопки вовлечения -->
-        <div class="mb-5 flex flex-col gap-2">
-            <button id="spinButton" onclick="startSpin()" class="w-full py-3.5 sm:py-4 rounded-2xl font-black text-base uppercase tracking-wider text-white spin-btn-active transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2.5">
-                <svg id="spinBtnIcon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                <span id="spinBtnText">Крутить бесплатно (3)</span>
-            </button>
-
-            <!-- Кнопка Поделиться с другом за +2 спина и Быстрый вывод -->
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="shareWithFriend()" class="py-2.5 px-3 rounded-xl bg-[#181c29] hover:bg-[#1f2436] border border-blue-500/30 text-blue-400 text-[11px] font-extrabold flex items-center justify-center gap-1.5 active:scale-95 transition">
-                    <span>👥 Другу</span>
-                    <span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-white text-[10px]">+2 спина</span>
+        <!-- ==========================================
+             ВКЛАДКА 1: РУЛЕТКА
+             ========================================== -->
+        <div id="view-roulette" class="app-view">
+            <!-- Переключатель режима рулетки -->
+            <div class="grid grid-cols-2 gap-1.5 bg-[#14161f] p-1.5 rounded-2xl border border-white/10 mb-3.5">
+                <button id="tabPlates" onclick="switchTab('plates')" class="py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-lg shadow-orange-600/25">
+                    <span>🚘</span>
+                    <span class="truncate">Рулетка номеров</span>
                 </button>
-                <button onclick="redirectToOffer()" class="py-2.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-[11px] font-extrabold flex items-center justify-center gap-1.5 active:scale-95 transition">
-                    <span>🚀 Вывести призы</span>
+                <button id="tabGold" onclick="switchTab('gold')" class="py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 text-gray-400 hover:text-white">
+                    <span>🪙</span>
+                    <span class="truncate">Голда SO2</span>
                 </button>
             </div>
-        </div>
 
-        <!-- Инвентарь полученных призов -->
-        <section id="inventorySection" class="mb-5 hidden">
-            <div class="bg-gradient-to-b from-[#181c29] to-[#12151f] border border-amber-500/40 rounded-2xl p-3.5 shadow-lg shadow-amber-500/5">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                        <span>🎁</span> Ваши призы к выводу
-                    </span>
-                    <span class="text-[10px] font-bold text-red-400 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                        ⏳ Сгорят через: <span id="inventoryTimer" class="font-mono font-black">14:59</span>
-                    </span>
-                </div>
-                <div id="inventoryList" class="flex flex-col gap-2 max-h-36 overflow-y-auto pr-1 mb-3">
-                    <!-- Список выбитых призов -->
-                </div>
-                <button onclick="redirectToOffer()" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/25 active:scale-98 transition flex items-center justify-center gap-2">
-                    <span>Забрать все призы на аккаунт</span>
-                    <span>→</span>
-                </button>
+            <!-- Статус пула и спинов -->
+            <div class="bg-[#141722] border border-white/10 rounded-2xl px-3 py-2.5 mb-3.5 flex items-center justify-between">
+                <span class="font-bold text-gray-300 text-[11px] flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Шанс редкого дропа: <b class="text-emerald-400">ПОВЫШЕН</b></span>
+                </span>
+                <span class="px-2.5 py-0.5 rounded-lg bg-orange-500/20 border border-orange-500/30 text-orange-400 font-extrabold text-[11px]">
+                    Спинов: <span id="spinsLeftCount" class="text-white">3</span>
+                </span>
             </div>
-        </section>
 
-        <!-- Возможные призы в пуле -->
-        <section class="mb-4">
+            <!-- Информационный баннер -->
             <div class="flex items-center justify-between mb-2.5 px-1">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">Содержимое рулетки</h3>
-                <span class="text-[11px] text-emerald-400 font-semibold">Шанс дропа 100%</span>
+                <div>
+                    <h2 id="rouletteTitle" class="text-sm sm:text-base font-extrabold text-white tracking-tight">Рулетка госномеров</h2>
+                    <p id="rouletteSubtitle" class="text-[11px] text-gray-400">Выбей блатной номер и сразу выведи на аккаунт</p>
+                </div>
+                <button id="dailyBonusBtn" onclick="claimDailyBonus()" class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 active:scale-95 transition flex items-center gap-1 shrink-0">
+                    <span>🎁</span> <span id="dailyBonusText">+1 Бонус</span>
+                </button>
             </div>
-            <div id="prizePoolGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                <!-- Генерируется через JS -->
+
+            <!-- Блок рулетки -->
+            <section class="roulette-viewport rounded-2xl h-40 mb-4 flex items-center relative">
+                <div id="centerPointer" class="center-pointer"></div>
+                <div id="rouletteTrack" class="flex items-center gap-3 px-4 will-change-transform">
+                    <!-- JS -->
+                </div>
+            </section>
+
+            <!-- Кнопки вращения -->
+            <div class="mb-5 flex flex-col gap-2">
+                <button id="spinButton" onclick="startSpin()" class="w-full py-3.5 sm:py-4 rounded-2xl font-black text-base uppercase tracking-wider text-white spin-btn-active transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2.5">
+                    <svg id="spinBtnIcon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    <span id="spinBtnText">Крутить бесплатно (3)</span>
+                </button>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="shareWithFriend()" class="py-2.5 px-3 rounded-xl bg-[#181c29] hover:bg-[#1f2436] border border-blue-500/30 text-blue-400 text-[11px] font-extrabold flex items-center justify-center gap-1.5 active:scale-95 transition">
+                        <span>👥 Другу</span>
+                        <span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-white text-[10px]">+2 спина</span>
+                    </button>
+                    <button onclick="redirectToOffer()" class="py-2.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-[11px] font-extrabold flex items-center justify-center gap-1.5 active:scale-95 transition">
+                        <span>🚀 Вывести призы</span>
+                    </button>
+                </div>
             </div>
-        </section>
+
+            <!-- Мини-инвентарь -->
+            <section id="inventorySection" class="mb-5 hidden">
+                <div class="bg-gradient-to-b from-[#181c29] to-[#12151f] border border-amber-500/40 rounded-2xl p-3.5 shadow-lg shadow-amber-500/5">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                            <span>🎁</span> Ваши призы к выводу
+                        </span>
+                        <span class="text-[10px] font-bold text-red-400 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                            ⏳ Сгорят через: <span id="inventoryTimer" class="font-mono font-black">14:59</span>
+                        </span>
+                    </div>
+                    <div id="inventoryList" class="flex flex-col gap-2 max-h-36 overflow-y-auto pr-1 mb-3">
+                        <!-- JS -->
+                    </div>
+                    <button onclick="redirectToOffer()" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/25 active:scale-98 transition flex items-center justify-center gap-2">
+                        <span>🚀 Забрать все призы на аккаунт</span>
+                        <span>→</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Пул призов -->
+            <section class="mb-4">
+                <div class="flex items-center justify-between mb-2.5 px-1">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400">Содержимое рулетки</h3>
+                    <span class="text-[11px] text-emerald-400 font-semibold">Шанс дропа 100%</span>
+                </div>
+                <div id="prizePoolGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    <!-- JS -->
+                </div>
+            </section>
+        </div>
+
+        <!-- ==========================================
+             ВКЛАДКА 2: ИНВЕНТАРЬ
+             ========================================== -->
+        <div id="view-inventory" class="app-view hidden">
+            <div class="bg-[#141722] border border-white/10 rounded-2xl p-3.5 mb-3.5">
+                <div class="flex items-center justify-between mb-2">
+                    <div>
+                        <h2 class="text-base font-black text-white">Мой Инвентарь</h2>
+                        <p class="text-[11px] text-gray-400">Управляй выбитыми номерами и голдой</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-black">
+                        Всего: <span id="fullInvTotalCount">0</span>
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 no-scrollbar">
+                    <button onclick="setInventoryFilter('all')" id="invFilter-all" class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-amber-500 text-black shrink-0 transition">Все</button>
+                    <button onclick="setInventoryFilter('legendary')" id="invFilter-legendary" class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-white/5 text-amber-300 border border-amber-500/30 shrink-0 transition">Легендарные</button>
+                    <button onclick="setInventoryFilter('epic')" id="invFilter-epic" class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-white/5 text-purple-300 border border-purple-500/30 shrink-0 transition">Эпические</button>
+                    <button onclick="setInventoryFilter('rare')" id="invFilter-rare" class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-white/5 text-blue-300 border border-blue-500/30 shrink-0 transition">Редкие</button>
+                    <button onclick="setInventoryFilter('common')" id="invFilter-common" class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-white/5 text-gray-300 border border-gray-500/30 shrink-0 transition">Обычные</button>
+                </div>
+            </div>
+
+            <div id="fullInventoryGrid" class="grid grid-cols-2 gap-2.5 mb-4">
+                <!-- JS -->
+            </div>
+
+            <div id="fullInventoryEmpty" class="hidden bg-[#141722] border border-white/10 rounded-2xl p-8 text-center mb-4">
+                <div class="text-4xl mb-2">📦</div>
+                <h3 class="text-sm font-extrabold text-white mb-1">Инвентарь пуст</h3>
+                <p class="text-xs text-gray-400 mb-4">Залетай в рулетку и выбивай первые крутые тачки или голду!</p>
+                <button onclick="switchMainView('roulette')" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-orange-500/20">
+                    🎰 Крутить рулетку
+                </button>
+            </div>
+
+            <div id="fullInventoryActions" class="hidden">
+                <button onclick="redirectToOffer()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-xl shadow-emerald-500/25 active:scale-98 transition flex items-center justify-center gap-2">
+                    <span>🚀 Вывести все призы на аккаунт</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             ВКЛАДКА 3: КЛАНЫ / ФАМЫ (Сленг)
+             ========================================== -->
+        <div id="view-clans" class="app-view hidden">
+            <div class="bg-gradient-to-b from-[#161c2e] to-[#131620] border border-blue-500/30 rounded-2xl p-4 mb-3.5">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="px-2 py-0.5 rounded-md bg-blue-500/20 border border-blue-500/40 text-blue-300 text-[10px] font-black uppercase">Капт Фамилий BR</span>
+                    <span class="text-[10px] text-emerald-400 font-bold">Призовой фонд: 50.000 G</span>
+                </div>
+
+                <div id="userClanActiveBox" class="hidden">
+                    <div class="flex items-center justify-between bg-black/40 border border-white/10 rounded-xl p-3 mb-2.5">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-black text-sm">
+                                👑
+                            </div>
+                            <div>
+                                <div class="text-xs font-black text-white" id="currentClanNameDisplay">SHELBY SQUAD</div>
+                                <div class="text-[10px] text-amber-400 font-bold">Твой вклад: <span id="userClanPtsDisplay">350</span> pts</div>
+                            </div>
+                        </div>
+                        <button onclick="leaveClan()" class="px-2.5 py-1 rounded-lg bg-red-500/15 border border-red-500/30 text-red-300 text-[10px] font-bold">Ливнуть</button>
+                    </div>
+                    <p class="text-[10px] text-gray-400">Каждый твой прокрут в рулетке качает фаму и дает +50 очков в общак!</p>
+                </div>
+
+                <div id="userClanJoinBox">
+                    <h2 class="text-base font-black text-white mb-1">Рвани с пацанами в Фаму</h2>
+                    <p class="text-[11px] text-gray-400 mb-3">Залетай в клан, забирай +1 халявный спин на старте и бейся за топ сквадов сезона!</p>
+                    <div class="flex gap-2 mb-2">
+                        <input id="clanInputName" type="text" maxlength="18" placeholder="Введи название фамы..." class="flex-1 bg-black/50 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-400">
+                        <button onclick="createOrJoinCustomClan()" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-black text-xs uppercase shrink-0 active:scale-95 transition">
+                            Создать / Вход
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#141722] border border-white/10 rounded-2xl p-3.5">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-gray-300">🏆 Топ-5 Фамов Сезона</h3>
+                    <span class="text-[10px] text-emerald-400 font-semibold">LIVE</span>
+                </div>
+                <div id="clanLeaderboardList" class="flex flex-col gap-2">
+                    <!-- JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             ВКЛАДКА 4: ЗАДАНИЯ / BATTLE PASS (Сленг)
+             ========================================== -->
+        <div id="view-quests" class="app-view hidden">
+            <div class="bg-gradient-to-r from-[#1f1924] via-[#191d2b] to-[#141722] border border-amber-500/30 rounded-2xl p-4 mb-3.5">
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black uppercase">Battle Pass • Сезон 1</span>
+                    <span class="text-xs font-black text-white">LVL <span id="bpLevelText" class="text-amber-400">1</span></span>
+                </div>
+                <h2 class="text-base font-black text-white mb-1">Залутай Бонусы</h2>
+                <p class="text-[11px] text-gray-400 mb-2.5">Выполняй задания, крути колесо и забирай халявные прокруты в свою коллекцию!</p>
+                <div class="w-full h-2.5 bg-black/60 rounded-full overflow-hidden p-0.5 border border-white/10">
+                    <div id="bpProgressBar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-400 rounded-full transition-all duration-300" style="width: 20%"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-gray-400 mt-1">
+                    <span>Прогресс заданий</span>
+                    <span id="bpProgressCounter">0 / 5 выполнено</span>
+                </div>
+            </div>
+
+            <div id="questsListContainer" class="flex flex-col gap-2.5 mb-4">
+                <!-- JS -->
+            </div>
+        </div>
 
     </main>
 
-    <!-- Модальное окно выигрыша (Result Modal) -->
+    <!-- Нижняя навигация -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-[#11141d]/95 backdrop-blur-md border-t border-white/10 px-2 py-1.5">
+        <div class="max-w-md mx-auto grid grid-cols-4 gap-1.5">
+            <button onclick="switchMainView('roulette')" id="navBtn-roulette" class="flex flex-col items-center justify-center py-1.5 rounded-xl text-amber-400 bg-amber-500/10 border border-amber-500/25 transition">
+                <span class="text-base leading-none mb-0.5">🎰</span>
+                <span class="text-[10px] font-extrabold leading-none">Рулетка</span>
+            </button>
+            <button onclick="switchMainView('inventory')" id="navBtn-inventory" class="relative flex flex-col items-center justify-center py-1.5 rounded-xl text-gray-400 hover:text-white transition">
+                <span class="text-base leading-none mb-0.5">🎒</span>
+                <span class="text-[10px] font-bold leading-none">Инвентарь</span>
+                <span id="navInvBadge" class="hidden absolute top-1 right-3.5 min-w-[15px] h-[15px] px-1 rounded-full bg-amber-500 text-black font-black text-[9px] flex items-center justify-center">0</span>
+            </button>
+            <button onclick="switchMainView('clans')" id="navBtn-clans" class="flex flex-col items-center justify-center py-1.5 rounded-xl text-gray-400 hover:text-white transition">
+                <span class="text-base leading-none mb-0.5">🛡️</span>
+                <span class="text-[10px] font-bold leading-none">Кланы</span>
+            </button>
+            <button onclick="switchMainView('quests')" id="navBtn-quests" class="relative flex flex-col items-center justify-center py-1.5 rounded-xl text-gray-400 hover:text-white transition">
+                <span class="text-base leading-none mb-0.5">📋</span>
+                <span class="text-[10px] font-bold leading-none">Задания</span>
+                <span id="navQuestsDot" class="w-2 h-2 rounded-full bg-emerald-400 absolute top-1.5 right-4 animate-pulse"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Модальное окно выигрыша (UX Докрутка: верификация ID снижает паранойю) -->
     <div id="resultModal" onclick="if(event.target === this) closeResultModal()" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 transition-opacity duration-300">
-        <!-- Карточка результата -->
         <div id="modalCard" class="relative z-50 w-full max-w-sm bg-[#161923] border border-white/15 rounded-3xl p-5 text-center shadow-2xl transform scale-90 transition-transform duration-300 overflow-hidden">
             
-            <!-- Кнопка закрытия (крестик для выхода и смены режима) -->
             <button onclick="closeResultModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 text-gray-300 hover:text-white flex items-center justify-center text-sm font-bold transition z-30" title="Закрыть">
                 ✕
             </button>
 
-            <!-- Фоновое свечение внутри модалки -->
             <div id="modalGlow" class="absolute -top-24 left-1/2 -translate-x-1/2 w-56 h-56 bg-amber-500/25 rounded-full blur-3xl pointer-events-none"></div>
 
-            <!-- Таймер сгорания награды (FOMO) -->
             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/15 border border-red-500/30 text-red-300 text-[11px] font-extrabold mb-2">
                 <span>⏳ Бронь приза:</span>
                 <span id="modalUrgencyTimer" class="font-mono text-white">04:59</span>
             </div>
 
-            <h3 id="modalTitle" class="text-lg font-black text-white mb-3">Поздравляем! Вы выбили:</h3>
+            <h3 id="modalTitle" class="text-lg font-black text-white mb-2">Поздравляем! Вы выбили:</h3>
 
-            <!-- Контейнер для крупного показа приза -->
-            <div id="modalPrizeShowcase" class="my-3 p-4 rounded-2xl bg-[#0e1017] border border-white/10 flex flex-col items-center justify-center relative">
-                <!-- Заполняется динамически -->
+            <!-- Текст верификации ID для снижения тревожности -->
+            <p class="text-[11px] text-emerald-400 font-semibold mb-3 bg-emerald-500/10 border border-emerald-500/20 py-1.5 px-3 rounded-xl">
+                ✅ Ваш ID успешно верифицирован в системе раздачи. Приз готов к экспорту!
+            </p>
+
+            <div id="modalPrizeShowcase" class="my-2 p-4 rounded-2xl bg-[#0e1017] border border-white/10 flex flex-col items-center justify-center relative">
+                <!-- JS -->
             </div>
 
-            <!-- Уведомление о зачислении -->
             <div id="claimSuccessBanner" class="hidden mb-3 p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 <span id="claimSuccessText">Перенаправляем на страницу получения...</span>
             </div>
 
-            <!-- Кнопки действий (Главный фокус на кнопке ЗАБРАТЬ НА АККАУНТ) -->
             <div class="flex flex-col gap-2 mt-4">
                 <button id="claimPrizeBtn" onclick="claimCurrentPrize()" class="w-full py-4 rounded-xl font-black text-sm uppercase tracking-wider bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white shadow-xl shadow-emerald-500/30 hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 animate-pulse">
                     <span>🚀 ЗАБРАТЬ ПРИЗ НА АККАУНТ</span>
@@ -353,20 +505,18 @@
                         👥 +2 спина
                     </button>
                 </div>
-                <!-- Кнопка возврата к рулетке для переключения на голду/номера -->
                 <button onclick="closeResultModal()" class="w-full py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/5 transition flex items-center justify-center gap-1.5 active:scale-95">
-                    <span>← Вернуться к рулеткам (сменить режим)</span>
+                    <span>← Вернуться к рулеткам</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Промежуточное окно бронирования приза (Reservation Overlay) -->
+    <!-- Окно бронирования -->
     <div id="reservationOverlay" class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-black/90 backdrop-blur-lg">
         <div class="w-full max-w-xs bg-[#141824] border border-emerald-500/40 rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden">
             <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-44 h-44 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
             
-            <!-- Спиннер загрузки -->
             <div class="relative w-14 h-14 mx-auto mb-4 flex items-center justify-center">
                 <div class="absolute inset-0 rounded-full border-4 border-emerald-500/20"></div>
                 <div class="absolute inset-0 rounded-full border-4 border-emerald-400 border-t-transparent animate-spin"></div>
@@ -378,7 +528,6 @@
                 Связь с сервером Black Russia...
             </p>
 
-            <!-- Прогресс-бар бронирования -->
             <div class="w-full h-2 bg-black/60 rounded-full overflow-hidden mt-3 border border-white/10 p-0.5">
                 <div id="reservationBar" class="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-amber-400 rounded-full transition-all duration-300" style="width: 15%"></div>
             </div>
@@ -390,9 +539,6 @@
     </div>
 
     <script>
-        /* ==========================================
-         * 1. БАЗА ПРИЗОВ И РЕДКОСТЕЙ
-         * ========================================== */
         const OFFER_URL = 'https://formealwork.net/w/JOZdvXmna';
 
         const RARITY_STYLES = {
@@ -413,44 +559,80 @@
                 border: 'border-blue-500/40',
                 bg: 'from-blue-500/15 to-[#141722]',
                 badge: 'bg-blue-500/20 text-blue-300 border-blue-400/40'
+            },
+            common: {
+                name: 'Обычный',
+                border: 'border-slate-500/40',
+                bg: 'from-slate-500/15 to-[#141722]',
+                badge: 'bg-slate-500/20 text-slate-300 border-slate-400/40'
             }
         };
 
         const PRIZE_POOLS = {
             plates: [
-                { id: 'p1', type: 'plate', code: 'А777АА', region: '777', valueText: 'Гос: 15.000.000 ₽', rarityKey: 'legendary' },
-                { id: 'p2', type: 'plate', code: 'Е777КХ', region: '777', valueText: 'Гос: 20.000.000 ₽', rarityKey: 'legendary' },
-                { id: 'p3', type: 'plate', code: 'В777ОР', region: '777', valueText: 'Гос: 12.500.000 ₽', rarityKey: 'epic' },
-                { id: 'p4', type: 'plate', code: 'Х999ХХ', region: '199', valueText: 'Гос: 18.000.000 ₽', rarityKey: 'legendary' },
-                { id: 'p5', type: 'plate', code: 'А001АА', region: '77', valueText: 'Гос: 16.000.000 ₽', rarityKey: 'legendary' },
-                { id: 'p6', type: 'plate', code: 'С777СС', region: '777', valueText: 'Гос: 14.000.000 ₽', rarityKey: 'legendary' },
-                { id: 'p7', type: 'plate', code: 'О777ОО', region: '777', valueText: 'Гос: 10.000.000 ₽', rarityKey: 'epic' },
-                { id: 'p8', type: 'plate', code: 'К777КК', region: '99', valueText: 'Гос: 9.500.000 ₽', rarityKey: 'epic' },
-                { id: 'p9', type: 'plate', code: 'Т888ТТ', region: '177', valueText: 'Гос: 8.000.000 ₽', rarityKey: 'epic' },
-                { id: 'p10', type: 'plate', code: 'М001ММ', region: '99', valueText: 'Гос: 6.500.000 ₽', rarityKey: 'rare' },
-                { id: 'p11', type: 'plate', code: 'У999УУ', region: '77', valueText: 'Гос: 7.000.000 ₽', rarityKey: 'rare' },
-                { id: 'p12', type: 'plate', code: 'Н555НН', region: '777', valueText: 'Гос: 5.500.000 ₽', rarityKey: 'rare' }
+                { id: 'p_c1', game: 'br', type: 'plate', code: 'Е482ТВ', region: '58', valueText: 'Гос: 120.000 ₽', rarityKey: 'common' },
+                { id: 'p_c2', game: 'br', type: 'plate', code: 'К914МН', region: '64', valueText: 'Гос: 145.000 ₽', rarityKey: 'common' },
+                { id: 'p_c3', game: 'br', type: 'plate', code: 'Р305СХ', region: '116', valueText: 'Гос: 110.000 ₽', rarityKey: 'common' },
+                { id: 'p_c4', game: 'br', type: 'plate', code: 'Т628УВ', region: '50', valueText: 'Гос: 160.000 ₽', rarityKey: 'common' },
+                { id: 'p_c5', game: 'br', type: 'plate', code: 'У204НК', region: '73', valueText: 'Гос: 95.000 ₽', rarityKey: 'common' },
+                { id: 'p_c6', game: 'br', type: 'plate', code: 'В831ОР', region: '36', valueText: 'Гос: 180.000 ₽', rarityKey: 'common' },
+                { id: 'p_c7', game: 'br', type: 'plate', code: 'С519АЕ', region: '154', valueText: 'Гос: 130.000 ₽', rarityKey: 'common' },
+                { id: 'p_c8', game: 'br', type: 'plate', code: 'Н742КМ', region: '23', valueText: 'Гос: 175.000 ₽', rarityKey: 'common' },
+                { id: 'c_c1', game: 'br', type: 'car', icon: '🚗', name: 'ВАЗ 2107 Опера', statusText: 'Автосалон • 150.000 ₽', rarityKey: 'common' },
+                { id: 'c_c2', game: 'br', type: 'car', icon: '🚙', name: 'Lada Priora Люкс', statusText: 'Тонировка • 380.000 ₽', rarityKey: 'common' },
+                { id: 'c_c3', game: 'br', type: 'car', icon: '💵', name: '250.000 Игровых ₽', statusText: 'Банк BR • 250К', rarityKey: 'common' },
+
+                { id: 'p_r1', game: 'br', type: 'plate', code: 'М100ММ', region: '99', valueText: 'Гос: 1.800.000 ₽', rarityKey: 'rare' },
+                { id: 'p_r2', game: 'br', type: 'plate', code: 'У500УУ', region: '77', valueText: 'Гос: 2.400.000 ₽', rarityKey: 'rare' },
+                { id: 'p_r3', game: 'br', type: 'plate', code: 'К070КК', region: '50', valueText: 'Гос: 1.500.000 ₽', rarityKey: 'rare' },
+                { id: 'p_r4', game: 'br', type: 'plate', code: 'А808АА', region: '177', valueText: 'Гос: 2.100.000 ₽', rarityKey: 'rare' },
+                { id: 'c_r1', game: 'br', type: 'car', icon: '🚘', name: 'Toyota Camry 3.5', statusText: 'Седан • 2.800.000 ₽', rarityKey: 'rare' },
+                { id: 'c_r2', game: 'br', type: 'car', icon: '🏎️', name: 'BMW M3 E46', statusText: 'Дрифт корч • 2.2КК', rarityKey: 'rare' },
+                { id: 'c_r3', game: 'br', type: 'car', icon: '💎', name: 'Platinum VIP (30 дн.)', statusText: 'Премиум статус BR', rarityKey: 'rare' },
+
+                { id: 'p_e1', game: 'br', type: 'plate', code: 'В777ОР', region: '777', valueText: 'Гос: 9.500.000 ₽', rarityKey: 'epic' },
+                { id: 'p_e2', game: 'br', type: 'plate', code: 'О777ОО', region: '777', valueText: 'Гос: 8.800.000 ₽', rarityKey: 'epic' },
+                { id: 'c_e1', game: 'br', type: 'car', icon: '🏎️', name: 'BMW M5 F90 Comp', statusText: 'Спорткар • 12.5КК', rarityKey: 'epic' },
+                { id: 'c_e2', game: 'br', type: 'car', icon: '🚓', name: 'Mercedes-AMG E63s', statusText: 'Stage 3 • 11.2КК', rarityKey: 'epic' },
+
+                { id: 'p_l1', game: 'br', type: 'plate', code: 'А777АА', region: '777', valueText: 'Гос: 18.000.000 ₽', rarityKey: 'legendary' },
+                { id: 'p_l2', game: 'br', type: 'plate', code: 'Е777КХ', region: '777', valueText: 'Гос: 22.000.000 ₽', rarityKey: 'legendary' },
+                { id: 'c_l1', game: 'br', type: 'car', icon: '🔥', name: 'Mercedes G63 AMG', statusText: 'Гелик • 28.000.000 ₽', rarityKey: 'legendary' },
+                { id: 'c_l2', game: 'br', type: 'car', icon: '⚡', name: 'Lamborghini Urus', statusText: 'Эксклюзив • 35.000.000 ₽', rarityKey: 'legendary' },
+                { id: 'c_l3', game: 'br', type: 'car', icon: '👑', name: 'Bugatti Chiron', statusText: 'Гиперкар • 65.000.000 ₽', rarityKey: 'legendary' }
             ],
             gold: [
-                { id: 'g1', type: 'gold', amount: '10000 G', statusText: 'Супер-Дроп SO2', rarityKey: 'legendary' },
-                { id: 'g2', type: 'gold', amount: '5000 G', statusText: 'Моментальный вывод', rarityKey: 'legendary' },
-                { id: 'g3', type: 'gold', amount: '3500 G', statusText: 'По ID аккаунта', rarityKey: 'legendary' },
-                { id: 'g4', type: 'gold', amount: '2500 G', statusText: 'Промо-пакет SO2', rarityKey: 'epic' },
-                { id: 'g5', type: 'gold', amount: '2000 G', statusText: 'Быстрый трансфер', rarityKey: 'epic' },
-                { id: 'g6', type: 'gold', amount: '1500 G', statusText: 'Бонус-пак SO2', rarityKey: 'epic' },
-                { id: 'g7', type: 'gold', amount: '1000 G', statusText: 'Пополнение баланса', rarityKey: 'rare' },
-                { id: 'g8', type: 'gold', amount: '750 G', statusText: 'Призовой промокод', rarityKey: 'rare' },
-                { id: 'g9', type: 'gold', amount: '500 G', statusText: 'Стартовый пакет', rarityKey: 'rare' },
-                { id: 'g10', type: 'gold', amount: '300 G', statusText: 'Начальный бонус', rarityKey: 'rare' },
-                { id: 'g11', type: 'gold', amount: '150 G', statusText: 'Мини-кейс', rarityKey: 'rare' },
-                { id: 'g12', type: 'gold', amount: 'Karambit Gold', statusText: 'Скин-гарант SO2', rarityKey: 'legendary' }
+                { id: 'g_c1', game: 'so2', type: 'gold', icon: '🪙', amount: '25 G', statusText: 'Бонус SO2', rarityKey: 'common' },
+                { id: 'g_c2', game: 'so2', type: 'gold', icon: '🪙', amount: '50 G', statusText: 'Стартовый баланс', rarityKey: 'common' },
+                { id: 'g_c3', game: 'so2', type: 'gold', icon: '🪙', amount: '75 G', statusText: 'Пополнение по ID', rarityKey: 'common' },
+                { id: 'g_c4', game: 'so2', type: 'gold', icon: '🪙', amount: '100 G', statusText: 'Мини-пак SO2', rarityKey: 'common' },
+                { id: 's_c1', game: 'so2', type: 'skin', icon: '🔫', amount: 'G22 Nest (StatTrak)', statusText: 'Скин пистолета SO2', rarityKey: 'common' },
+                { id: 's_c2', game: 'so2', type: 'skin', icon: '🔫', amount: 'AKR Carbon', statusText: 'Штурмовая винтовка', rarityKey: 'common' },
+                { id: 's_c3', game: 'so2', type: 'skin', icon: '🔫', amount: 'Deagle Morgan', statusText: 'Классический скин', rarityKey: 'common' },
+
+                { id: 'g_r1', game: 'so2', type: 'gold', icon: '🪙', amount: '250 G', statusText: 'Средний пак SO2', rarityKey: 'rare' },
+                { id: 'g_r2', game: 'so2', type: 'gold', icon: '🪙', amount: '350 G', statusText: 'Призовой баланс', rarityKey: 'rare' },
+                { id: 'g_r3', game: 'so2', type: 'gold', icon: '🪙', amount: '500 G', statusText: 'Популярный дроп', rarityKey: 'rare' },
+                { id: 's_r1', game: 'so2', type: 'skin', icon: '🔫', amount: 'AKR Necromancer', statusText: 'Редкий скин SO2', rarityKey: 'rare' },
+                { id: 's_r2', game: 'so2', type: 'skin', icon: '🔫', amount: 'M4 Samurai', statusText: 'Легендарная классика', rarityKey: 'rare' },
+                { id: 's_r3', game: 'so2', type: 'skin', icon: '🎯', amount: 'AWM Genesis', statusText: 'Снайперский скин', rarityKey: 'rare' },
+
+                { id: 'g_e1', game: 'so2', type: 'gold', icon: '🪙', amount: '1500 G', statusText: 'Крупный перевод', rarityKey: 'epic' },
+                { id: 'g_e2', game: 'so2', type: 'gold', icon: '🪙', amount: '2500 G', statusText: 'Промо-пакет SO2', rarityKey: 'epic' },
+                { id: 's_e1', game: 'so2', type: 'skin', icon: '🧤', amount: 'Gloves Autumn', statusText: 'Перчатки Standoff 2', rarityKey: 'epic' },
+                { id: 's_e2', game: 'so2', type: 'skin', icon: '🧤', amount: 'Gloves Champion', statusText: 'Турнирные перчатки', rarityKey: 'epic' },
+
+                { id: 'g_l1', game: 'so2', type: 'gold', icon: '🪙', amount: '5000 G', statusText: 'Моментальный вывод', rarityKey: 'legendary' },
+                { id: 'g_l2', game: 'so2', type: 'gold', icon: '💎', amount: '10000 G', statusText: 'Мега-Джекпот SO2', rarityKey: 'legendary' },
+                { id: 's_l1', game: 'so2', type: 'skin', icon: '🔪', amount: 'Karambit Gold', statusText: 'Легендарный нож SO2', rarityKey: 'legendary' },
+                { id: 's_l2', game: 'so2', type: 'skin', icon: '🗡️', amount: 'M9 Bayonet Dragon Glass', statusText: 'Топ Нож Standoff 2', rarityKey: 'legendary' },
+                { id: 's_l3', game: 'so2', type: 'skin', icon: '🦋', amount: 'Butterfly Legacy', statusText: 'Нож-бабочка SO2', rarityKey: 'legendary' }
             ]
         };
 
-        /* ==========================================
-         * 2. СОСТОЯНИЕ ПРИЛОЖЕНИЯ
-         * ========================================== */
+        let currentMainView = 'roulette';
         let currentTab = 'plates';
+        let currentInvFilter = 'all';
         let isSpinning = false;
         let soundEnabled = true;
         let audioCtx = null;
@@ -458,6 +640,10 @@
         let inventory = [];
         try {
             inventory = JSON.parse(localStorage.getItem('br_so2_inventory') || '[]');
+            inventory = inventory.map((item, idx) => ({
+                ...item,
+                uid: item.uid || ('item_' + Date.now() + '_' + idx)
+            }));
         } catch (e) {
             inventory = [];
         }
@@ -467,6 +653,26 @@
 
         let spinCountForPity = parseInt(localStorage.getItem('br_so2_pity') || '1', 10);
         if (isNaN(spinCountForPity)) spinCountForPity = 1;
+
+        let totalSpinsDone = parseInt(localStorage.getItem('br_so2_total_spins') || '0', 10);
+        if (isNaN(totalSpinsDone)) totalSpinsDone = 0;
+
+        let friendSharedCount = parseInt(localStorage.getItem('br_so2_shared') || '0', 10);
+        if (isNaN(friendSharedCount)) friendSharedCount = 0;
+
+        let userClan = null;
+        try {
+            userClan = JSON.parse(localStorage.getItem('br_so2_clan') || 'null');
+        } catch (e) {
+            userClan = null;
+        }
+
+        let claimedQuests = {};
+        try {
+            claimedQuests = JSON.parse(localStorage.getItem('br_so2_quests') || '{}');
+        } catch (e) {
+            claimedQuests = {};
+        }
 
         let dailyClaimed = localStorage.getItem('br_so2_daily') === new Date().toDateString();
         let currentWinningPrize = null;
@@ -478,14 +684,22 @@
         const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 
         const FAKE_FEED_EVENTS = [
-            { user: '@br_maga77', prize: 'А777АА 777 (15КК)', action: 'вывел на сервер Grozny' },
+            { user: '@br_maga77', prize: 'А777АА 777 (18КК)', action: 'вывел на сервер Grozny' },
             { user: '@so2_sniper', prize: '5000 G', action: 'забрал на ID аккаунта' },
-            { user: '@khasan_05', prize: 'В777ОР 777 (12.5КК)', action: 'успешно получил в игре' },
-            { user: '@danya_standoff', prize: '3500 G', action: 'моментально вывел' },
-            { user: '@oper_style99', prize: 'Е777КХ 777 (20КК)', action: 'забрал блатной номер' },
-            { user: '@timur_br', prize: 'Х999ХХ 199 (18КК)', action: 'активировал промо-приз' },
-            { user: '@gold_hunter', prize: '2500 G', action: 'получил зачисление' },
-            { user: '@maloy_777', prize: 'О777ОО 777 (10КК)', action: 'вывел через кнопку' }
+            { user: '@khasan_05', prize: 'Toyota Camry 3.5', action: 'успешно получил в игре' },
+            { user: '@danya_standoff', prize: 'Karambit Gold', action: 'выбил из рулетки' },
+            { user: '@oper_style99', prize: 'Е777КХ 777 (22КК)', action: 'забрал блатной номер' },
+            { user: '@timur_br', prize: 'BMW M5 F90 Comp', action: 'активировал промо-приз' },
+            { user: '@gold_hunter', prize: 'AKR Necromancer', action: 'получил зачисление' },
+            { user: '@maloy_777', prize: 'У500УУ 77 (2.4КК)', action: 'вывел через кнопку' }
+        ];
+
+        const CLAN_LEADERBOARD = [
+            { name: 'SHELBY SQUAD', tag: '[SHLB]', members: 148, points: 48950, reward: '25,000 G' },
+            { name: 'DAGESTAN MAFIA', tag: '[05]', members: 132, points: 44200, reward: '15,000 G' },
+            { name: 'OPER STYLE BR', tag: '[OPER]', members: 119, points: 39800, reward: '10,000 G' },
+            { name: 'NAVI JUNIOR SO2', tag: '[NAVI]', members: 94, points: 31450, reward: '5,000 G' },
+            { name: 'GROZNY KINGS', tag: '[95]', members: 87, points: 28900, reward: '3,000 G' }
         ];
 
         const TRACK_ITEMS_COUNT = 55;
@@ -493,9 +707,36 @@
         const CARD_WIDTH = 132;
         const CARD_GAP = 12;
 
-        /* ==========================================
-         * 3. ЗВУКОВЫЕ ЭФФЕКТЫ И ВИБРАЦИЯ TELEGRAM
-         * ========================================== */
+        function switchMainView(viewName) {
+            if (isSpinning) return;
+            triggerHaptic('selection');
+            currentMainView = viewName;
+
+            const views = ['roulette', 'inventory', 'clans', 'quests'];
+            views.forEach(v => {
+                const viewEl = document.getElementById(`view-${v}`);
+                const navBtn = document.getElementById(`navBtn-${v}`);
+                if (viewEl) {
+                    if (v === viewName) {
+                        viewEl.classList.remove('hidden');
+                    } else {
+                        viewEl.classList.add('hidden');
+                    }
+                }
+                if (navBtn) {
+                    if (v === viewName) {
+                        navBtn.className = 'relative flex flex-col items-center justify-center py-1.5 rounded-xl text-amber-400 bg-amber-500/10 border border-amber-500/25 transition';
+                    } else {
+                        navBtn.className = 'relative flex flex-col items-center justify-center py-1.5 rounded-xl text-gray-400 hover:text-white transition';
+                    }
+                }
+            });
+
+            if (viewName === 'inventory') renderFullInventory();
+            if (viewName === 'clans') renderClansView();
+            if (viewName === 'quests') renderQuestsView();
+        }
+
         function triggerHaptic(type, styleOrStatus) {
             try {
                 if (tg && tg.HapticFeedback) {
@@ -609,9 +850,6 @@
             }
         }
 
-        /* ==========================================
-         * 4. ОТРИСОВКА КАРТОЧЕК И ИНТЕРФЕЙСА
-         * ========================================== */
         function createCardHTML(item) {
             const style = RARITY_STYLES[item.rarityKey] || RARITY_STYLES.rare;
             if (item.type === 'plate') {
@@ -628,13 +866,24 @@
                         <span class="text-[10px] font-bold text-emerald-400 truncate max-w-full">${item.valueText}</span>
                     </div>
                 `;
+            } else if (item.type === 'car') {
+                return `
+                    <div class="w-[132px] h-[126px] shrink-0 rounded-2xl bg-gradient-to-b ${style.bg} border ${style.border} p-2.5 flex flex-col items-center justify-between shadow-md">
+                        <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${style.badge}">${style.name}</span>
+                        <div class="my-auto flex flex-col items-center text-center">
+                            <span class="text-2xl">${item.icon || '🏎️'}</span>
+                            <span class="text-[11px] font-black text-white leading-tight line-clamp-1">${item.name}</span>
+                        </div>
+                        <span class="text-[9px] font-bold text-emerald-400 truncate max-w-full">${item.statusText}</span>
+                    </div>
+                `;
             } else {
                 return `
                     <div class="w-[132px] h-[126px] shrink-0 rounded-2xl bg-gradient-to-b ${style.bg} border ${style.border} p-2.5 flex flex-col items-center justify-between shadow-md">
                         <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${style.badge}">${style.name}</span>
-                        <div class="my-auto flex flex-col items-center">
-                            <span class="text-2xl">🪙</span>
-                            <span class="text-sm font-black text-amber-400 tracking-tight">${item.amount}</span>
+                        <div class="my-auto flex flex-col items-center text-center">
+                            <span class="text-2xl">${item.icon || '🪙'}</span>
+                            <span class="text-xs font-black text-amber-400 tracking-tight line-clamp-1">${item.amount}</span>
                         </div>
                         <span class="text-[10px] font-semibold text-gray-300 truncate max-w-full">${item.statusText}</span>
                     </div>
@@ -676,12 +925,21 @@
                             <span class="text-[11px] font-bold text-emerald-400">${item.valueText}</span>
                         </div>
                     `;
+                } else if (item.type === 'car') {
+                    return `
+                        <div class="rounded-2xl bg-gradient-to-b ${style.bg} border ${style.border} p-3 flex flex-col items-center justify-between gap-1.5 text-center">
+                            <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${style.badge}">${style.name}</span>
+                            <div class="text-2xl my-0.5">${item.icon || '🏎️'}</div>
+                            <div class="text-xs font-black text-white">${item.name}</div>
+                            <span class="text-[10px] font-bold text-emerald-400">${item.statusText}</span>
+                        </div>
+                    `;
                 } else {
                     return `
-                        <div class="rounded-2xl bg-gradient-to-b ${style.bg} border ${style.border} p-3 flex flex-col items-center justify-between gap-1.5">
+                        <div class="rounded-2xl bg-gradient-to-b ${style.bg} border ${style.border} p-3 flex flex-col items-center justify-between gap-1.5 text-center">
                             <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${style.badge}">${style.name}</span>
-                            <div class="text-2xl my-0.5">🪙</div>
-                            <div class="text-sm font-black text-amber-400">${item.amount}</div>
+                            <div class="text-2xl my-0.5">${item.icon || '🪙'}</div>
+                            <div class="text-xs font-black text-amber-400">${item.amount}</div>
                             <span class="text-[10px] text-gray-400">${item.statusText}</span>
                         </div>
                     `;
@@ -715,14 +973,21 @@
             renderPrizePoolGrid();
         }
 
-        /* ==========================================
-         * 5. МЕХАНИКА ВРАЩЕНИЯ РУЛЕТКИ И БОНУСОВ
-         * ========================================== */
+        function saveStateToStorage() {
+            try {
+                localStorage.setItem('br_so2_inventory', JSON.stringify(inventory));
+                localStorage.setItem('br_so2_spins', String(spinsLeft));
+                localStorage.setItem('br_so2_pity', String(spinCountForPity));
+                localStorage.setItem('br_so2_total_spins', String(totalSpinsDone));
+                localStorage.setItem('br_so2_shared', String(friendSharedCount));
+                localStorage.setItem('br_so2_clan', JSON.stringify(userClan));
+                localStorage.setItem('br_so2_quests', JSON.stringify(claimedQuests));
+            } catch (e) {}
+        }
+
         function updateSpinsAndPityUI() {
             const spinsLeftEl = document.getElementById('spinsLeftCount');
             const spinBtnText = document.getElementById('spinBtnText');
-            const pityText = document.getElementById('pityCounterText');
-            const pityBar = document.getElementById('pityProgressBar');
             const dailyBtn = document.getElementById('dailyBonusBtn');
             const dailyText = document.getElementById('dailyBonusText');
 
@@ -730,17 +995,6 @@
             if (!isSpinning && spinBtnText) {
                 spinBtnText.textContent = spinsLeft > 0 ? `Крутить бесплатно (${spinsLeft})` : '👥 +2 спина за друга';
             }
-
-            const stepsDone = spinCountForPity % 3;
-            const remaining = 3 - stepsDone;
-            const percent = remaining === 1 ? 100 : (remaining === 2 ? 66 : 33);
-
-            if (pityText) {
-                pityText.textContent = remaining === 1
-                    ? 'СЛЕДУЮЩИЙ СПИН!'
-                    : `${remaining} спина`;
-            }
-            if (pityBar) pityBar.style.width = `${percent}%`;
 
             if (dailyClaimed && dailyBtn && dailyText) {
                 dailyText.textContent = 'Получено ✓';
@@ -751,15 +1005,15 @@
         function claimDailyBonus() {
             triggerHaptic('impact', 'light');
             if (dailyClaimed) {
-                showToast('Ежедневный бонус уже получен! Пригласи друга за +2 спина');
+                showToast('Ежедневный бонус уже получен! Загляни в Задания');
                 return;
             }
             dailyClaimed = true;
+            spinsLeft += 1;
             try {
                 localStorage.setItem('br_so2_daily', new Date().toDateString());
-                spinsLeft += 1;
-                localStorage.setItem('br_so2_spins', String(spinsLeft));
             } catch (e) {}
+            saveStateToStorage();
             triggerHaptic('notification', 'success');
             updateSpinsAndPityUI();
             showToast('🎁 Ежедневный бонус: +1 бесплатный спин начислен!');
@@ -767,9 +1021,10 @@
 
         function shareWithFriend() {
             triggerHaptic('impact', 'medium');
-           const shareText = encodeURIComponent('🔥 Забирай блатные номера Black Russia и 5000 Голды Standoff 2 бесплатно в рулетке! Мне уже выпал топ приз:');
-           const shareUrl = encodeURIComponent('https://t.me/br_gold_drop_bot?startapp=true');
-           const fullShareLink = `https://t.me/share/url?url=${shareUrl}&text=${shareText}`;
+            
+            const botUsername = 'br_gold_drop_bot';
+            const text = '🔥 Забирай блатные номера Black Russia и голду Standoff 2 бесплатно в рулетке!';
+            const fullShareLink = `https://t.me/share/url?url=${encodeURIComponent('https://t.me/' + botUsername + '?startapp=true')}&text=${encodeURIComponent(text)}`;
 
             if (tg && typeof tg.openTelegramLink === 'function') {
                 tg.openTelegramLink(fullShareLink);
@@ -779,10 +1034,10 @@
 
             setTimeout(() => {
                 spinsLeft += 2;
-                try {
-                    localStorage.setItem('br_so2_spins', String(spinsLeft));
-                } catch (e) {}
+                friendSharedCount += 1;
+                saveStateToStorage();
                 updateSpinsAndPityUI();
+                renderQuestsView();
                 showToast('🎉 +2 бонусных спина за друга начислены!');
             }, 1200);
         }
@@ -800,10 +1055,11 @@
 
             spinsLeft -= 1;
             spinCountForPity += 1;
-            try {
-                localStorage.setItem('br_so2_spins', String(spinsLeft));
-                localStorage.setItem('br_so2_pity', String(spinCountForPity));
-            } catch (e) {}
+            totalSpinsDone += 1;
+            if (userClan) {
+                userClan.points = (userClan.points || 300) + 50;
+            }
+            saveStateToStorage();
             updateSpinsAndPityUI();
 
             const spinBtn = document.getElementById('spinButton');
@@ -817,17 +1073,31 @@
             buildRouletteTrack();
 
             const pool = PRIZE_POOLS[currentTab];
+            const commonPool = pool.filter(item => item.rarityKey === 'common');
+            const rarePool = pool.filter(item => item.rarityKey === 'rare');
+            const epicPool = pool.filter(item => item.rarityKey === 'epic');
             const legendaryPool = pool.filter(item => item.rarityKey === 'legendary');
-            const highTierPool = pool.filter(item => item.rarityKey === 'legendary' || item.rarityKey === 'epic');
+            const highTierPool = [...epicPool, ...legendaryPool];
 
-            // Каждый 3-й спин гарантированно выдает Легендарку по шкале гаранта
             let winner;
-            if (spinCountForPity % 3 === 0 && legendaryPool.length > 0) {
-                winner = legendaryPool[Math.floor(Math.random() * legendaryPool.length)];
-            } else if (Math.random() < 0.7) {
-                winner = highTierPool[Math.floor(Math.random() * highTierPool.length)];
+            if (totalSpinsDone === 1 && rarePool.length > 0) {
+                winner = rarePool[Math.floor(Math.random() * rarePool.length)];
+            } else if (totalSpinsDone === 2 && highTierPool.length > 0) {
+                const topPool = Math.random() < 0.65 && legendaryPool.length > 0 ? legendaryPool : highTierPool;
+                winner = topPool[Math.floor(Math.random() * topPool.length)];
             } else {
-                winner = pool[Math.floor(Math.random() * pool.length)];
+                const roll = Math.random() * 100;
+                if (roll < 52 && commonPool.length > 0) {
+                    winner = commonPool[Math.floor(Math.random() * commonPool.length)];
+                } else if (roll < 82 && rarePool.length > 0) {
+                    winner = rarePool[Math.floor(Math.random() * rarePool.length)];
+                } else if (roll < 95 && epicPool.length > 0) {
+                    winner = epicPool[Math.floor(Math.random() * epicPool.length)];
+                } else if (legendaryPool.length > 0) {
+                    winner = legendaryPool[Math.floor(Math.random() * legendaryPool.length)];
+                } else {
+                    winner = pool[Math.floor(Math.random() * pool.length)];
+                }
             }
 
             currentWinningPrize = winner;
@@ -887,37 +1157,323 @@
 
             inventory.unshift({
                 ...currentWinningPrize,
+                uid: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
                 claimedAt: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
             });
-            try {
-                localStorage.setItem('br_so2_inventory', JSON.stringify(inventory));
-            } catch (e) {}
+            saveStateToStorage();
             updateInventoryUI();
 
             playWinSound();
             triggerHaptic('notification', 'success');
             fireWinConfetti();
-            openResultModal(currentWinningPrize);
+            openResultModal(currentWinningPrize, 'Поздравляем! Вы выбили:');
         }
 
-        /* ==========================================
-         * 6. МОДАЛЬНОЕ ОКНО ВЫИГРЫША И БРОНИРОВАНИЕ
-         * ========================================== */
-        function openResultModal(prize) {
+        function setInventoryFilter(filterKey) {
+            triggerHaptic('selection');
+            currentInvFilter = filterKey;
+            const keys = ['all', 'legendary', 'epic', 'rare', 'common'];
+            keys.forEach(k => {
+                const btn = document.getElementById(`invFilter-${k}`);
+                if (!btn) return;
+                if (k === filterKey) {
+                    btn.className = 'px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-amber-500 text-black shrink-0 transition';
+                } else {
+                    btn.className = 'px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-white/5 text-gray-300 border border-white/10 shrink-0 transition';
+                }
+            });
+            renderFullInventory();
+        }
+
+        function renderFullInventory() {
+            const totalEl = document.getElementById('fullInvTotalCount');
+            const gridEl = document.getElementById('fullInventoryGrid');
+            const emptyEl = document.getElementById('fullInventoryEmpty');
+            const actionsEl = document.getElementById('fullInventoryActions');
+
+            if (totalEl) totalEl.textContent = inventory.length;
+            if (!gridEl || !emptyEl || !actionsEl) return;
+
+            const filtered = currentInvFilter === 'all'
+                ? inventory
+                : inventory.filter(i => i.rarityKey === currentInvFilter);
+
+            if (filtered.length === 0) {
+                gridEl.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                actionsEl.classList.toggle('hidden', inventory.length === 0);
+                return;
+            }
+
+            emptyEl.classList.add('hidden');
+            actionsEl.classList.remove('hidden');
+
+            gridEl.innerHTML = filtered.map(item => {
+                const style = RARITY_STYLES[item.rarityKey] || RARITY_STYLES.rare;
+                let visual = '';
+                let sub = '';
+                if (item.type === 'plate') {
+                    visual = `<div class="ru-plate my-2"><div class="ru-plate-main">${item.code}</div><div class="ru-plate-region"><span>${item.region}</span><div class="ru-flag"></div></div></div>`;
+                    sub = item.valueText;
+                } else if (item.type === 'car') {
+                    visual = `<div class="my-1.5 flex flex-col items-center text-center"><span class="text-2xl">${item.icon || '🏎️'}</span><span class="text-xs font-black text-white">${item.name}</span></div>`;
+                    sub = item.statusText;
+                } else {
+                    visual = `<div class="my-1.5 flex flex-col items-center text-center"><span class="text-2xl">${item.icon || '🪙'}</span><span class="text-xs font-black text-amber-400">${item.amount}</span></div>`;
+                    sub = item.statusText;
+                }
+
+                return `
+                    <div class="rounded-2xl bg-gradient-to-b ${style.bg} border ${style.border} p-3 flex flex-col items-center justify-between shadow-md">
+                        <div class="w-full flex items-center justify-between">
+                            <span class="text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${style.badge}">${style.name}</span>
+                            <span class="text-[9px] text-gray-400">${item.claimedAt || 'сейчас'}</span>
+                        </div>
+                        ${visual}
+                        <div class="text-[10px] font-bold text-emerald-400 mb-2 truncate max-w-full">${sub}</div>
+                        <button onclick="redirectToOffer()" class="w-full py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-[10px] font-extrabold uppercase transition">
+                            🚀 Вывести на аккаунт
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderClansView() {
+            const activeBox = document.getElementById('userClanActiveBox');
+            const joinBox = document.getElementById('userClanJoinBox');
+            const nameDisplay = document.getElementById('currentClanNameDisplay');
+            const ptsDisplay = document.getElementById('userClanPtsDisplay');
+            const headerClan = document.getElementById('headerClanBadge');
+            const boardEl = document.getElementById('clanLeaderboardList');
+
+            if (userClan) {
+                if (activeBox) activeBox.classList.remove('hidden');
+                if (joinBox) joinBox.classList.add('hidden');
+                if (nameDisplay) nameDisplay.textContent = userClan.name;
+                if (ptsDisplay) ptsDisplay.textContent = userClan.points || 350;
+                if (headerClan) headerClan.innerHTML = `Фама: <b class="text-amber-400">${userClan.name}</b>`;
+            } else {
+                if (activeBox) activeBox.classList.add('hidden');
+                if (joinBox) joinBox.classList.remove('hidden');
+                if (headerClan) headerClan.textContent = 'Официальная раздача призов';
+            }
+
+            if (boardEl) {
+                boardEl.innerHTML = CLAN_LEADERBOARD.map((clan, idx) => {
+                    const isUserClan = userClan && userClan.name.toUpperCase() === clan.name.toUpperCase();
+                    const totalPts = isUserClan ? clan.points + (userClan.points || 350) : clan.points;
+                    const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `#${idx + 1}`));
+
+                    return `
+                        <div class="flex items-center justify-between p-2.5 rounded-xl border ${isUserClan ? 'bg-blue-500/15 border-blue-400/50' : 'bg-[#0e1017] border-white/10'}">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center font-black text-xs shrink-0">${medal}</div>
+                                <div class="min-w-0">
+                                    <div class="text-xs font-black text-white truncate">${clan.tag} ${clan.name}</div>
+                                    <div class="text-[10px] text-gray-400">Состав: ${clan.members + (isUserClan ? 1 : 0)} • Приз: <b class="text-emerald-400">${clan.reward}</b></div>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <div class="text-xs font-extrabold text-amber-400">${totalPts.toLocaleString('ru-RU')} pts</div>
+                                ${!userClan ? `<button onclick="joinPresetClan('${clan.name}')" class="mt-0.5 px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[9px] font-bold hover:bg-blue-500/30">Влететь</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function joinPresetClan(clanName) {
+            triggerHaptic('notification', 'success');
+            const firstJoin = !localStorage.getItem('br_so2_clan_bonus');
+            userClan = { name: clanName, points: 350 };
+            if (firstJoin) {
+                spinsLeft += 1;
+                try { localStorage.setItem('br_so2_clan_bonus', '1'); } catch (e) {}
+                showToast(`👑 Влетел в ${clanName}! +1 спин закинул на баланс`);
+            } else {
+                showToast(`👑 Ты в составе фамы ${clanName}!`);
+            }
+            saveStateToStorage();
+            updateSpinsAndPityUI();
+            renderClansView();
+            renderQuestsView();
+        }
+
+        function createOrJoinCustomClan() {
+            const input = document.getElementById('clanInputName');
+            const val = input ? input.value.trim() : '';
+            if (val.length < 3) {
+                showToast('Введи название фамы (от 3 символов)');
+                return;
+            }
+            joinPresetClan(val.toUpperCase());
+            if (input) input.value = '';
+        }
+
+        function leaveClan() {
+            triggerHaptic('selection');
+            userClan = null;
+            saveStateToStorage();
+            renderClansView();
+            showToast('Ты ливнул из фамы');
+        }
+
+        function getQuestsDefinitions() {
+            const hasPlatesAndGold = inventory.some(i => i.game === 'br' || i.type === 'plate' || i.type === 'car') &&
+                                     inventory.some(i => i.game === 'so2' || i.type === 'gold' || i.type === 'skin');
+            return [
+                {
+                    id: 'q_spin3',
+                    title: 'Сделай 3 прокрута в рулетке',
+                    progress: Math.min(totalSpinsDone, 3),
+                    target: 3,
+                    rewardText: '+1 Спин',
+                    rewardType: 'spins',
+                    rewardAmount: 1
+                },
+                {
+                    id: 'q_clan',
+                    title: 'Влететь с пацанами в любую Фаму',
+                    progress: userClan ? 1 : 0,
+                    target: 1,
+                    rewardText: '+1 Спин',
+                    rewardType: 'spins',
+                    rewardAmount: 1
+                },
+                {
+                    id: 'q_both_modes',
+                    title: 'Залутать дроп и в BR, и в Standoff 2',
+                    progress: hasPlatesAndGold ? 1 : 0,
+                    target: 1,
+                    rewardText: '+2 Спина',
+                    rewardType: 'spins',
+                    rewardAmount: 2
+                },
+                {
+                    id: 'q_share',
+                    title: 'Позвать братву по ссылке',
+                    progress: Math.min(friendSharedCount, 1),
+                    target: 1,
+                    rewardText: '+2 Спина',
+                    rewardType: 'spins',
+                    rewardAmount: 2
+                },
+                {
+                    id: 'q_collect5',
+                    title: 'Собрать 5 любых вещичек в Инвентаре',
+                    progress: Math.min(inventory.length, 5),
+                    target: 5,
+                    rewardText: '🎁 Эпик Дроп',
+                    rewardType: 'epic_item',
+                    rewardAmount: 1
+                }
+            ];
+        }
+
+        function renderQuestsView() {
+            const container = document.getElementById('questsListContainer');
+            const bpLevel = document.getElementById('bpLevelText');
+            const bpBar = document.getElementById('bpProgressBar');
+            const bpCounter = document.getElementById('bpProgressCounter');
+            const navDot = document.getElementById('navQuestsDot');
+
+            const quests = getQuestsDefinitions();
+            let completedCount = 0;
+            let hasUnclaimedReady = false;
+
+            quests.forEach(q => {
+                if (claimedQuests[q.id]) completedCount++;
+                else if (q.progress >= q.target) hasUnclaimedReady = true;
+            });
+
+            if (bpLevel) bpLevel.textContent = 1 + completedCount;
+            if (bpBar) bpBar.style.width = `${Math.max(12, (completedCount / quests.length) * 100)}%`;
+            if (bpCounter) bpCounter.textContent = `${completedCount} / ${quests.length} выполнено`;
+            if (navDot) navDot.classList.toggle('hidden', !hasUnclaimedReady);
+
+            if (!container) return;
+
+            container.innerHTML = quests.map(q => {
+                const isClaimed = !!claimedQuests[q.id];
+                const isReady = q.progress >= q.target && !isClaimed;
+                const pct = Math.min(100, Math.round((q.progress / q.target) * 100));
+
+                let actionBtn = '';
+                if (isClaimed) {
+                    actionBtn = `<span class="px-2.5 py-1.5 rounded-xl bg-white/5 text-emerald-400 text-[10px] font-extrabold shrink-0">Залутано ✓</span>`;
+                } else if (isReady) {
+                    actionBtn = `<button onclick="claimQuestReward('${q.id}')" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[10px] font-black uppercase shadow-md shadow-emerald-500/20 animate-pulse shrink-0">Забрать ${q.rewardText}</button>`;
+                } else {
+                    actionBtn = `<span class="px-2.5 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-extrabold shrink-0">${q.rewardText}</span>`;
+                }
+
+                return `
+                    <div class="bg-[#141722] border ${isReady ? 'border-emerald-500/50' : 'border-white/10'} rounded-2xl p-3 flex flex-col gap-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="text-xs font-extrabold text-white">${q.title}</div>
+                            ${actionBtn}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 h-1.5 bg-black/50 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-amber-500 to-emerald-400 rounded-full transition-all" style="width: ${pct}%"></div>
+                            </div>
+                            <span class="text-[10px] font-bold text-gray-400">${q.progress}/${q.target}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function claimQuestReward(questId) {
+            const quests = getQuestsDefinitions();
+            const q = quests.find(item => item.id === questId);
+            if (!q || claimedQuests[questId] || q.progress < q.target) return;
+
+            claimedQuests[questId] = true;
+            initAudio();
+            playWinSound();
+            triggerHaptic('notification', 'success');
+            fireWinConfetti();
+
+            if (q.rewardType === 'spins') {
+                spinsLeft += q.rewardAmount;
+                showToast(`🎉 Награда залутана: +${q.rewardAmount} спин!`);
+            } else {
+                const epicPool = [...PRIZE_POOLS.plates, ...PRIZE_POOLS.gold].filter(p => p.rarityKey === 'epic' || p.rarityKey === 'legendary');
+                const bonusItem = {
+                    ...epicPool[Math.floor(Math.random() * epicPool.length)],
+                    uid: 'quest_' + Date.now(),
+                    claimedAt: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                };
+                inventory.unshift(bonusItem);
+                showToast('🎁 Эпический шмот упал в Инвентарь!');
+            }
+
+            saveStateToStorage();
+            updateSpinsAndPityUI();
+            updateInventoryUI();
+            renderQuestsView();
+        }
+
+        function openResultModal(prize, customTitle) {
             const modal = document.getElementById('resultModal');
             const card = document.getElementById('modalCard');
+            const titleEl = document.getElementById('modalTitle');
             const showcase = document.getElementById('modalPrizeShowcase');
             const claimBanner = document.getElementById('claimSuccessBanner');
             const claimBtn = document.getElementById('claimPrizeBtn');
 
-            modalSeconds = 4 * 60 + 59; // Сброс таймера брони для нового выигрыша
+            modalSeconds = 4 * 60 + 59;
+            if (titleEl) titleEl.textContent = customTitle || 'Поздравляем! Вы выбили:';
             claimBanner.classList.add('hidden');
             claimBtn.classList.remove('hidden');
 
             const style = RARITY_STYLES[prize.rarityKey] || RARITY_STYLES.rare;
             if (prize.type === 'plate') {
                 showcase.innerHTML = `
-                    <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${style.badge} mb-3">${style.name} приз</span>
+                    <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${style.badge} mb-3">${style.name} госномер</span>
                     <div class="ru-plate scale-125 my-3">
                         <div class="ru-plate-main">${prize.code}</div>
                         <div class="ru-plate-region">
@@ -927,10 +1483,17 @@
                     </div>
                     <div class="text-sm font-black text-emerald-400 mt-2">${prize.valueText}</div>
                 `;
+            } else if (prize.type === 'car') {
+                showcase.innerHTML = `
+                    <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${style.badge} mb-2">${style.name} автомобиль</span>
+                    <div class="text-5xl my-2">${prize.icon || '🏎️'}</div>
+                    <div class="text-xl font-black text-white">${prize.name}</div>
+                    <div class="text-xs font-bold text-emerald-400 mt-1">${prize.statusText}</div>
+                `;
             } else {
                 showcase.innerHTML = `
-                    <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${style.badge} mb-2">${style.name} приз</span>
-                    <div class="text-5xl my-2">🪙</div>
+                    <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${style.badge} mb-2">${style.name} дроп SO2</span>
+                    <div class="text-5xl my-2">${prize.icon || '🪙'}</div>
                     <div class="text-2xl font-black text-amber-400">${prize.amount}</div>
                     <div class="text-xs text-gray-400 mt-1">${prize.statusText}</div>
                 `;
@@ -961,11 +1524,11 @@
         function spinAgainFromModal() {
             closeResultModal();
             setTimeout(() => {
+                if (currentMainView !== 'roulette') switchMainView('roulette');
                 startSpin();
             }, 280);
         }
 
-        /* Промежуточная анимация "Бронирование приза" на 1.5 сек перед редиректом */
         function redirectToOffer() {
             if (isRedirecting) return;
             isRedirecting = true;
@@ -1021,10 +1584,17 @@
 
         function updateInventoryUI() {
             const badge = document.getElementById('inventoryCountBadge');
+            const navBadge = document.getElementById('navInvBadge');
             const section = document.getElementById('inventorySection');
             const list = document.getElementById('inventoryList');
 
             if (badge) badge.textContent = inventory.length;
+            if (navBadge) {
+                navBadge.textContent = inventory.length;
+                navBadge.classList.toggle('hidden', inventory.length === 0);
+            }
+            renderQuestsView();
+
             if (!section || !list) return;
 
             if (inventory.length === 0) {
@@ -1047,11 +1617,24 @@
                             <span class="text-[10px] font-extrabold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-1 rounded-lg">Забрать →</span>
                         </div>
                     `;
+                } else if (item.type === 'car') {
+                    return `
+                        <div onclick="redirectToOffer()" class="cursor-pointer flex items-center justify-between bg-[#0e1017] hover:bg-white/5 border border-white/10 rounded-xl px-3 py-2 transition">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-sm">${item.icon || '🏎️'}</span>
+                                <div>
+                                    <div class="text-xs font-extrabold text-white">${item.name}</div>
+                                    <div class="text-[10px] text-emerald-400 font-semibold">${item.statusText}</div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-extrabold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-1 rounded-lg">Забрать →</span>
+                        </div>
+                    `;
                 } else {
                     return `
                         <div onclick="redirectToOffer()" class="cursor-pointer flex items-center justify-between bg-[#0e1017] hover:bg-white/5 border border-white/10 rounded-xl px-3 py-2 transition">
                             <div class="flex items-center gap-2.5">
-                                <span class="text-sm">🪙</span>
+                                <span class="text-sm">${item.icon || '🪙'}</span>
                                 <div>
                                     <div class="text-xs font-extrabold text-amber-400">${item.amount}</div>
                                     <div class="text-[10px] text-gray-400">${item.statusText}</div>
@@ -1064,9 +1647,6 @@
             }).join('');
         }
 
-        /* ==========================================
-         * 7. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И ТАЙМЕРЫ
-         * ========================================== */
         let toastTimeout = null;
         function showToast(text) {
             const container = document.getElementById('toastContainer');
@@ -1084,6 +1664,7 @@
 
         function startLiveFeedAndTimers() {
             const feedEl = document.getElementById('liveFeedItem');
+            const onlineEl = document.getElementById('onlineCounter');
             let feedIdx = 0;
             setInterval(() => {
                 if (!feedEl) return;
@@ -1094,6 +1675,10 @@
                     feedEl.innerHTML = `Игрок <b class="text-white">${ev.user}</b> ${ev.action}: <b class="text-amber-400">${ev.prize}</b>`;
                     feedEl.style.opacity = '1';
                 }, 250);
+                if (onlineEl) {
+                    const base = 1460 + Math.floor(Math.random() * 35);
+                    onlineEl.textContent = base.toLocaleString('ru-RU');
+                }
             }, 3500);
 
             let secondsLeft = 14 * 60 + 59;
@@ -1125,6 +1710,8 @@
             renderPrizePoolGrid();
             updateInventoryUI();
             updateSpinsAndPityUI();
+            renderClansView();
+            renderQuestsView();
             startLiveFeedAndTimers();
         };
     </script>
