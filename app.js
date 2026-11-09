@@ -1,25 +1,34 @@
 /**
- * BR x SO2 DROP — Protected Core Engine (Obfuscated Build)
- * Защита от копирования логики, пулов призов и партнерской ссылки конкурентами.
+ * BLACK RUSSIA DROP — Protected Core Engine
+ * Единая моно-воронка: Госномера, Авто и Вирты Black Russia (TMA)
  */
 (function(_0x9a1f, _0x4c2b) {
+    // Конфигурация аналитики и подсчета запусков TMA
+    const _0xBotConfig = {
+        // Подключение к вашему бэкенду бота на Render
+        backendStatsUrl: _0x9a1f.BOT_STATS_ENDPOINT || 'https://sox-cih4.onrender.com/api/tma-track',
+        botToken: '',
+        adminChatId: ''
+    };
+
     const _0x2d8e = [
         'https://ioothub.xyz/drop',
         'br_gold_drop_bot',
-        '🔥 Забирай блатные номера Black Russia и голду Standoff 2 бесплатно в рулетке!',
+        '🔥 Забирай блатные номера, эксклюзивные тачки и миллионы виртов Black Russia бесплатно в рулетке!',
         'https://t.me/share/url?url=',
         'https://t.me/',
         '?startapp=true',
         '&text=',
-        'br_so2_inventory',
-        'br_so2_spins',
-        'br_so2_pity',
-        'br_so2_total_spins',
-        'br_so2_shared',
-        'br_so2_clan',
-        'br_so2_quests',
-        'br_so2_daily',
-        'br_so2_clan_bonus'
+        'br_unified_inventory',
+        'br_unified_spins',
+        'br_unified_pity',
+        'br_unified_total_spins',
+        'br_unified_shared',
+        'br_unified_clan',
+        'br_unified_quests',
+        'br_unified_daily',
+        'br_unified_clan_bonus',
+        'br_unified_unique_open'
     ];
     const _0x5f31 = function(_0x1b4a) {
         return _0x2d8e[_0x1b4a];
@@ -54,60 +63,68 @@
         }
     };
 
+    // Расширенный единый пул призов Black Russia: Госномера + Авто + Вирты
+    const _0xUnifiedPool = [
+        // ЛЕГЕНДАРНЫЕ ПРИЗЫ (ВЫПАДАЮТ ИГРОКУ)
+        { id: 'c_l1', game: 'br', type: 'car', icon: '👑', name: 'Bugatti Chiron', statusText: 'Гиперкар • 65.000.000 виртов', rarityKey: 'legendary' },
+        { id: 'c_l2', game: 'br', type: 'car', icon: '⚡', name: 'Lamborghini Aventador SVJ', statusText: 'Эксклюзив • 42.000.000 виртов', rarityKey: 'legendary' },
+        { id: 'c_l3', game: 'br', type: 'car', icon: '🔥', name: 'Rolls-Royce Cullinan', statusText: 'Люкс SUV • 40.000.000 виртов', rarityKey: 'legendary' },
+        { id: 'c_l4', game: 'br', type: 'car', icon: '⚡', name: 'Lamborghini Urus', statusText: 'Stage 3 • 35.000.000 виртов', rarityKey: 'legendary' },
+        { id: 'c_l5', game: 'br', type: 'car', icon: '🔥', name: 'Mercedes-Benz G63 AMG', statusText: 'Гелик Brabus • 28.000.000 виртов', rarityKey: 'legendary' },
+        { id: 'c_l6', game: 'br', type: 'car', icon: '🏎️', name: 'BMW M5 F90 CS', statusText: 'Спорткар • 18.500.000 виртов', rarityKey: 'legendary' },
+        { id: 'c_l7', game: 'br', type: 'car', icon: '👑', name: 'BMW M5 F90 + 3 500 000 виртов', statusText: 'Джекпот пакет Black Russia', rarityKey: 'legendary' },
+        { id: 'c_l8', game: 'br', type: 'car', icon: '🏎️', name: 'Ferrari LaFerrari', statusText: 'Лимитка • 55.000.000 виртов', rarityKey: 'legendary' },
+        { id: 'p_l1', game: 'br', type: 'plate', code: 'А777АА', region: '777', valueText: 'Гос: 18.000.000 виртов', rarityKey: 'legendary' },
+        { id: 'p_l2', game: 'br', type: 'plate', code: 'О777ОО', region: '777', valueText: 'Гос: 15.000.000 виртов', rarityKey: 'legendary' },
+        { id: 'p_l3', game: 'br', type: 'plate', code: 'Е777КХ', region: '777', valueText: 'Гос: 22.000.000 виртов', rarityKey: 'legendary' },
+        { id: 'p_l4', game: 'br', type: 'plate', code: 'Х777ХХ', region: '777', valueText: 'Гос: 19.500.000 виртов', rarityKey: 'legendary' },
+        { id: 'p_l5', game: 'br', type: 'plate', code: 'А001АА', region: '95', valueText: 'Гос: 16.000.000 виртов', rarityKey: 'legendary' },
+        { id: 'v_l1', game: 'br', type: 'car', icon: '💎', name: '15 000 000 виртов', statusText: 'Мега-кейс банка BR', rarityKey: 'legendary' },
+        { id: 'v_l2', game: 'br', type: 'car', icon: '💎', name: '10 000 000 виртов', statusText: 'Прямое зачисление на счет', rarityKey: 'legendary' },
+
+        // ЭПИЧЕСКИЕ ПРИЗЫ
+        { id: 'c_e1', game: 'br', type: 'car', icon: '🚓', name: 'Mercedes-AMG E63s', statusText: 'Stage 3 • 11.200.000 виртов', rarityKey: 'epic' },
+        { id: 'c_e2', game: 'br', type: 'car', icon: '🏎️', name: 'Porsche 911 Turbo S', statusText: 'Спорткупе • 14.800.000 виртов', rarityKey: 'epic' },
+        { id: 'c_e3', game: 'br', type: 'car', icon: '🚘', name: 'Audi RS7 Sportback', statusText: 'Тюнинг • 10.500.000 виртов', rarityKey: 'epic' },
+        { id: 'c_e4', game: 'br', type: 'car', icon: '🏎️', name: 'BMW M8 Competition', statusText: 'Гран Купе • 13.900.000 виртов', rarityKey: 'epic' },
+        { id: 'c_e5', game: 'br', type: 'car', icon: '🔥', name: 'Nissan GT-R R35 Nismo', statusText: 'Дрифт/Драг • 9.800.000 виртов', rarityKey: 'epic' },
+        { id: 'p_e1', game: 'br', type: 'plate', code: 'В777ОР', region: '777', valueText: 'Гос: 9.500.000 виртов', rarityKey: 'epic' },
+        { id: 'p_e2', game: 'br', type: 'plate', code: 'К999КК', region: '05', valueText: 'Гос: 8.200.000 виртов', rarityKey: 'epic' },
+        { id: 'p_e3', game: 'br', type: 'plate', code: 'М777ММ', region: '99', valueText: 'Гос: 7.900.000 виртов', rarityKey: 'epic' },
+        { id: 'v_e1', game: 'br', type: 'car', icon: '💰', name: '7 500 000 виртов', statusText: 'Крупный перевод BR', rarityKey: 'epic' },
+        { id: 'v_e2', game: 'br', type: 'car', icon: '💰', name: '5 000 000 виртов', statusText: 'Крупный пакет виртов', rarityKey: 'epic' },
+        { id: 'v_e3', game: 'br', type: 'car', icon: '💰', name: '3 500 000 виртов', statusText: 'Популярный дроп BR', rarityKey: 'epic' },
+
+        // РЕДКИЕ ПРИЗЫ
+        { id: 'c_r1', game: 'br', type: 'car', icon: '🚘', name: 'Toyota Camry 3.5', statusText: 'Седан • 2.800.000 виртов', rarityKey: 'rare' },
+        { id: 'c_r2', game: 'br', type: 'car', icon: '🏎️', name: 'BMW M3 G80', statusText: 'Спорт седан • 5.400.000 виртов', rarityKey: 'rare' },
+        { id: 'c_r3', game: 'br', type: 'car', icon: '🏎️', name: 'Toyota Supra A80', statusText: 'Легенда JDM • 4.600.000 виртов', rarityKey: 'rare' },
+        { id: 'c_r4', game: 'br', type: 'car', icon: '🚙', name: 'Toyota Land Cruiser 200', statusText: 'Внедорожник • 4.900.000 виртов', rarityKey: 'rare' },
+        { id: 'c_r5', game: 'br', type: 'car', icon: '🚘', name: 'Mercedes-Benz W212 E63', statusText: 'Классика • 3.200.000 виртов', rarityKey: 'rare' },
+        { id: 'c_r6', game: 'br', type: 'car', icon: '💎', name: 'Platinum VIP (30 дн.)', statusText: 'Премиум статус BR', rarityKey: 'rare' },
+        { id: 'p_r1', game: 'br', type: 'plate', code: 'М100ММ', region: '99', valueText: 'Гос: 1.800.000 виртов', rarityKey: 'rare' },
+        { id: 'p_r2', game: 'br', type: 'plate', code: 'У500УУ', region: '77', valueText: 'Гос: 2.400.000 виртов', rarityKey: 'rare' },
+        { id: 'p_r3', game: 'br', type: 'plate', code: 'А808АА', region: '177', valueText: 'Гос: 2.100.000 виртов', rarityKey: 'rare' },
+        { id: 'p_r4', game: 'br', type: 'plate', code: 'С007СС', region: '77', valueText: 'Гос: 3.100.000 виртов', rarityKey: 'rare' },
+        { id: 'v_r1', game: 'br', type: 'car', icon: '💵', name: '2 500 000 виртов', statusText: 'Призовой баланс BR', rarityKey: 'rare' },
+        { id: 'v_r2', game: 'br', type: 'car', icon: '💵', name: '1 500 000 виртов', statusText: 'Средний пак виртов', rarityKey: 'rare' },
+
+        // ОБЫЧНЫЕ ПРИЗЫ
+        { id: 'v_c1', game: 'br', type: 'car', icon: '💵', name: '1 000 000 виртов', statusText: 'Банк Black Russia', rarityKey: 'common' },
+        { id: 'v_c2', game: 'br', type: 'car', icon: '💵', name: '750 000 виртов', statusText: 'Бонусный перевод BR', rarityKey: 'common' },
+        { id: 'v_c3', game: 'br', type: 'car', icon: '💵', name: '500 000 виртов', statusText: 'Стартовый капитал BR', rarityKey: 'common' },
+        { id: 'c_c1', game: 'br', type: 'car', icon: '🚙', name: 'Lada Priora Люкс', statusText: 'Опер-стайл • 380.000 виртов', rarityKey: 'common' },
+        { id: 'c_c2', game: 'br', type: 'car', icon: '🚗', name: 'Lada Vesta Sport', statusText: 'Седан • 650.000 виртов', rarityKey: 'common' },
+        { id: 'c_c3', game: 'br', type: 'car', icon: '🚗', name: 'ВАЗ 2114 Бункер', statusText: 'Тонировка • 210.000 виртов', rarityKey: 'common' },
+        { id: 'c_c4', game: 'br', type: 'car', icon: '🚗', name: 'ВАЗ 2107 Опера', statusText: 'Автосалон • 150.000 виртов', rarityKey: 'common' },
+        { id: 'p_c1', game: 'br', type: 'plate', code: 'Е482ТВ', region: '58', valueText: 'Гос: 120.000 виртов', rarityKey: 'common' },
+        { id: 'p_c2', game: 'br', type: 'plate', code: 'К914МН', region: '64', valueText: 'Гос: 145.000 виртов', rarityKey: 'common' },
+        { id: 'p_c3', game: 'br', type: 'plate', code: 'В831ОР', region: '36', valueText: 'Гос: 180.000 виртов', rarityKey: 'common' }
+    ];
+
     const _0x7c12 = {
-        plates: [
-            { id: 'p_c1', game: 'br', type: 'plate', code: 'Е482ТВ', region: '58', valueText: 'Гос: 120.000 ₽', rarityKey: 'common' },
-            { id: 'p_c2', game: 'br', type: 'plate', code: 'К914МН', region: '64', valueText: 'Гос: 145.000 ₽', rarityKey: 'common' },
-            { id: 'p_c3', game: 'br', type: 'plate', code: 'Р305СХ', region: '116', valueText: 'Гос: 110.000 ₽', rarityKey: 'common' },
-            { id: 'p_c4', game: 'br', type: 'plate', code: 'Т628УВ', region: '50', valueText: 'Гос: 160.000 ₽', rarityKey: 'common' },
-            { id: 'p_c5', game: 'br', type: 'plate', code: 'У204НК', region: '73', valueText: 'Гос: 95.000 ₽', rarityKey: 'common' },
-            { id: 'p_c6', game: 'br', type: 'plate', code: 'В831ОР', region: '36', valueText: 'Гос: 180.000 ₽', rarityKey: 'common' },
-            { id: 'p_c7', game: 'br', type: 'plate', code: 'С519АЕ', region: '154', valueText: 'Гос: 130.000 ₽', rarityKey: 'common' },
-            { id: 'p_c8', game: 'br', type: 'plate', code: 'Н742КМ', region: '23', valueText: 'Гос: 175.000 ₽', rarityKey: 'common' },
-            { id: 'c_c1', game: 'br', type: 'car', icon: '🚗', name: 'ВАЗ 2107 Опера', statusText: 'Автосалон • 150.000 ₽', rarityKey: 'common' },
-            { id: 'c_c2', game: 'br', type: 'car', icon: '🚙', name: 'Lada Priora Люкс', statusText: 'Тонировка • 380.000 ₽', rarityKey: 'common' },
-            { id: 'c_c3', game: 'br', type: 'car', icon: '💵', name: '250.000 Игровых ₽', statusText: 'Банк BR • 250К', rarityKey: 'common' },
-            { id: 'p_r1', game: 'br', type: 'plate', code: 'М100ММ', region: '99', valueText: 'Гос: 1.800.000 ₽', rarityKey: 'rare' },
-            { id: 'p_r2', game: 'br', type: 'plate', code: 'У500УУ', region: '77', valueText: 'Гос: 2.400.000 ₽', rarityKey: 'rare' },
-            { id: 'p_r3', game: 'br', type: 'plate', code: 'К070КК', region: '50', valueText: 'Гос: 1.500.000 ₽', rarityKey: 'rare' },
-            { id: 'p_r4', game: 'br', type: 'plate', code: 'А808АА', region: '177', valueText: 'Гос: 2.100.000 ₽', rarityKey: 'rare' },
-            { id: 'c_r1', game: 'br', type: 'car', icon: '🚘', name: 'Toyota Camry 3.5', statusText: 'Седан • 2.800.000 ₽', rarityKey: 'rare' },
-            { id: 'c_r2', game: 'br', type: 'car', icon: '🏎️', name: 'BMW M3 E46', statusText: 'Дрифт корч • 2.2КК', rarityKey: 'rare' },
-            { id: 'c_r3', game: 'br', type: 'car', icon: '💎', name: 'Platinum VIP (30 дн.)', statusText: 'Премиум статус BR', rarityKey: 'rare' },
-            { id: 'p_e1', game: 'br', type: 'plate', code: 'В777ОР', region: '777', valueText: 'Гос: 9.500.000 ₽', rarityKey: 'epic' },
-            { id: 'p_e2', game: 'br', type: 'plate', code: 'О777ОО', region: '777', valueText: 'Гос: 8.800.000 ₽', rarityKey: 'epic' },
-            { id: 'c_e1', game: 'br', type: 'car', icon: '🏎️', name: 'BMW M5 F90 Comp', statusText: 'Спорткар • 12.5КК', rarityKey: 'epic' },
-            { id: 'c_e2', game: 'br', type: 'car', icon: '🚓', name: 'Mercedes-AMG E63s', statusText: 'Stage 3 • 11.2КК', rarityKey: 'epic' },
-            { id: 'p_l1', game: 'br', type: 'plate', code: 'А777АА', region: '777', valueText: 'Гос: 18.000.000 ₽', rarityKey: 'legendary' },
-            { id: 'p_l2', game: 'br', type: 'plate', code: 'Е777КХ', region: '777', valueText: 'Гос: 22.000.000 ₽', rarityKey: 'legendary' },
-            { id: 'c_l1', game: 'br', type: 'car', icon: '🔥', name: 'Mercedes G63 AMG', statusText: 'Гелик • 28.000.000 ₽', rarityKey: 'legendary' },
-            { id: 'c_l2', game: 'br', type: 'car', icon: '⚡', name: 'Lamborghini Urus', statusText: 'Эксклюзив • 35.000.000 ₽', rarityKey: 'legendary' },
-            { id: 'c_l3', game: 'br', type: 'car', icon: '👑', name: 'Bugatti Chiron', statusText: 'Гиперкар • 65.000.000 ₽', rarityKey: 'legendary' }
-        ],
-        gold: [
-            { id: 'g_c1', game: 'so2', type: 'gold', icon: '🪙', amount: '25 G', statusText: 'Бонус SO2', rarityKey: 'common' },
-            { id: 'g_c2', game: 'so2', type: 'gold', icon: '🪙', amount: '50 G', statusText: 'Стартовый баланс', rarityKey: 'common' },
-            { id: 'g_c3', game: 'so2', type: 'gold', icon: '🪙', amount: '75 G', statusText: 'Пополнение по ID', rarityKey: 'common' },
-            { id: 'g_c4', game: 'so2', type: 'gold', icon: '🪙', amount: '100 G', statusText: 'Мини-пак SO2', rarityKey: 'common' },
-            { id: 's_c1', game: 'so2', type: 'skin', icon: '🔫', amount: 'G22 Nest (StatTrak)', statusText: 'Скин пистолета SO2', rarityKey: 'common' },
-            { id: 's_c2', game: 'so2', type: 'skin', icon: '🔫', amount: 'AKR Carbon', statusText: 'Штурмовая винтовка', rarityKey: 'common' },
-            { id: 's_c3', game: 'so2', type: 'skin', icon: '🔫', amount: 'Deagle Morgan', statusText: 'Классический скин', rarityKey: 'common' },
-            { id: 'g_r1', game: 'so2', type: 'gold', icon: '🪙', amount: '250 G', statusText: 'Средний пак SO2', rarityKey: 'rare' },
-            { id: 'g_r2', game: 'so2', type: 'gold', icon: '🪙', amount: '350 G', statusText: 'Призовой баланс', rarityKey: 'rare' },
-            { id: 'g_r3', game: 'so2', type: 'gold', icon: '🪙', amount: '500 G', statusText: 'Популярный дроп', rarityKey: 'rare' },
-            { id: 's_r1', game: 'so2', type: 'skin', icon: '🔫', amount: 'AKR Necromancer', statusText: 'Редкий скин SO2', rarityKey: 'rare' },
-            { id: 's_r2', game: 'so2', type: 'skin', icon: '🔫', amount: 'M4 Samurai', statusText: 'Легендарная классика', rarityKey: 'rare' },
-            { id: 's_r3', game: 'so2', type: 'skin', icon: '🎯', amount: 'AWM Genesis', statusText: 'Снайперский скин', rarityKey: 'rare' },
-            { id: 'g_e1', game: 'so2', type: 'gold', icon: '🪙', amount: '1500 G', statusText: 'Крупный перевод', rarityKey: 'epic' },
-            { id: 'g_e2', game: 'so2', type: 'gold', icon: '🪙', amount: '2500 G', statusText: 'Промо-пакет SO2', rarityKey: 'epic' },
-            { id: 's_e1', game: 'so2', type: 'skin', icon: '🧤', amount: 'Gloves Autumn', statusText: 'Перчатки Standoff 2', rarityKey: 'epic' },
-            { id: 's_e2', game: 'so2', type: 'skin', icon: '🧤', amount: 'Gloves Champion', statusText: 'Турнирные перчатки', rarityKey: 'epic' },
-            { id: 'g_l1', game: 'so2', type: 'gold', icon: '🪙', amount: '5000 G', statusText: 'Моментальный вывод', rarityKey: 'legendary' },
-            { id: 'g_l2', game: 'so2', type: 'gold', icon: '💎', amount: '10000 G', statusText: 'Мега-Джекпот SO2', rarityKey: 'legendary' },
-            { id: 's_l1', game: 'so2', type: 'skin', icon: '🔪', amount: 'Karambit Gold', statusText: 'Легендарный нож SO2', rarityKey: 'legendary' },
-            { id: 's_l2', game: 'so2', type: 'skin', icon: '🗡️', amount: 'M9 Bayonet Dragon Glass', statusText: 'Топ Нож Standoff 2', rarityKey: 'legendary' },
-            { id: 's_l3', game: 'so2', type: 'skin', icon: '🦋', amount: 'Butterfly Legacy', statusText: 'Нож-бабочка SO2', rarityKey: 'legendary' }
-        ]
+        plates: _0xUnifiedPool,
+        gold: _0xUnifiedPool
     };
 
     let _0x8a11 = 'roulette',
@@ -123,8 +140,8 @@
         _0x8a17 = _0x8a17.map((_0x1c, _0x2c) => ({ ..._0x1c, uid: _0x1c.uid || ('item_' + Date.now() + '_' + _0x2c) }));
     } catch (_0xe) { _0x8a17 = []; }
 
-    let _0x8a18 = parseInt(localStorage.getItem(_0x5f31(8)) || '3', 10);
-    if (isNaN(_0x8a18)) _0x8a18 = 3;
+    let _0x8a18 = parseInt(localStorage.getItem(_0x5f31(8)) || '1', 10);
+    if (isNaN(_0x8a18) || _0x8a18 < 0) _0x8a18 = 1;
 
     let _0x8a19 = parseInt(localStorage.getItem(_0x5f31(9)) || '1', 10);
     if (isNaN(_0x8a19)) _0x8a19 = 1;
@@ -151,25 +168,131 @@
     const _0x8a24 = _0x9a1f.Telegram && _0x9a1f.Telegram.WebApp ? _0x9a1f.Telegram.WebApp : null;
 
     const _0x8a25 = [
-        { user: '@br_maga77', prize: 'А777АА 777 (18КК)', action: 'вывел на сервер Grozny' },
-        { user: '@so2_sniper', prize: '5000 G', action: 'забрал на ID аккаунта' },
-        { user: '@khasan_05', prize: 'Toyota Camry 3.5', action: 'успешно получил в игре' },
-        { user: '@danya_standoff', prize: 'Karambit Gold', action: 'выбил из рулетки' },
-        { user: '@oper_style99', prize: 'Е777КХ 777 (22КК)', action: 'забрал блатной номер' },
-        { user: '@timur_br', prize: 'BMW M5 F90 Comp', action: 'активировал промо-приз' },
-        { user: '@gold_hunter', prize: 'AKR Necromancer', action: 'получил зачисление' },
-        { user: '@maloy_777', prize: 'У500УУ 77 (2.4КК)', action: 'вывел через кнопку' }
+        { user: '@br_maga77', prize: 'А777АА 777', action: 'вывел на сервер Grozny' },
+        { user: '@mansur_br', prize: '10 000 000 виртов', action: 'забрал на игровой аккаунт' },
+        { user: '@khasan_05', prize: 'BMW M5 F90 CS', action: 'успешно получил в игре' },
+        { user: '@artem_black', prize: 'О777ОО 777', action: 'выбил с первого спина' },
+        { user: '@oper_style99', prize: 'Mercedes-Benz G63 AMG', action: 'забрал в автопарк' },
+        { user: '@timur_br', prize: 'Bugatti Chiron', action: 'активировал легендарный дроп' },
+        { user: '@vor_zakone', prize: '15 000 000 виртов', action: 'получил зачисление' },
+        { user: '@maloy_777', prize: 'Lamborghini Urus', action: 'вывел через кнопку' }
     ];
 
     const _0x8a26 = [
-        { name: 'SHELBY SQUAD', tag: '[SHLB]', members: 148, points: 48950, reward: '25,000 G' },
-        { name: 'DAGESTAN MAFIA', tag: '[05]', members: 132, points: 44200, reward: '15,000 G' },
-        { name: 'OPER STYLE BR', tag: '[OPER]', members: 119, points: 39800, reward: '10,000 G' },
-        { name: 'NAVI JUNIOR SO2', tag: '[NAVI]', members: 94, points: 31450, reward: '5,000 G' },
-        { name: 'GROZNY KINGS', tag: '[95]', members: 87, points: 28900, reward: '3,000 G' }
+        { name: 'SHELBY SQUAD', tag: '[SHLB]', members: 148, points: 48950, reward: '25 000 000 виртов' },
+        { name: 'DAGESTAN MAFIA', tag: '[05]', members: 132, points: 44200, reward: '15 000 000 виртов' },
+        { name: 'OPER STYLE BR', tag: '[OPER]', members: 119, points: 39800, reward: '10 000 000 виртов' },
+        { name: 'MOSCOW EMPIRE BR', tag: '[777]', members: 94, points: 31450, reward: '5 000 000 виртов' },
+        { name: 'GROZNY KINGS', tag: '[95]', members: 87, points: 28900, reward: '3 500 000 виртов' }
     ];
 
     const _0x44a1 = 55, _0x44a2 = 42, _0x44a3 = 132, _0x44a4 = 12;
+
+    // Отслеживание и тихий подсчет пользователей, запустивших Mini App
+    function _0xTrackTmaLaunch() {
+        try {
+            const _0xinitData = (_0x8a24 && _0x8a24.initDataUnsafe) ? _0x8a24.initDataUnsafe : {};
+            const _0xuser = _0xinitData.user || {};
+            const _0xurlParams = new URLSearchParams(_0x9a1f.location.search);
+
+            const _0xuserId = _0xuser.id || _0xurlParams.get('tg_id') || 'unknown';
+            const _0xusername = _0xuser.username ? `@${_0xuser.username}` : (_0xuser.first_name || 'unknown');
+            const _0xclickId = _0xurlParams.get('click_id') || _0xinitData.start_param || null;
+
+            let _0xisUnique = false;
+            try {
+                if (!localStorage.getItem(_0x5f31(16))) {
+                    _0xisUnique = true;
+                    localStorage.setItem(_0x5f31(16), String(Date.now()));
+                }
+            } catch (_0xe) {}
+
+            try {
+                let _0xviews = parseInt(localStorage.getItem('br_tma_views_count') || '0', 10);
+                localStorage.setItem('br_tma_views_count', String(_0xviews + 1));
+            } catch (_0xe) {}
+
+            if (_0xBotConfig.backendStatsUrl) {
+                fetch(_0xBotConfig.backendStatsUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        event: 'app_launch',
+                        user_id: _0xuserId,
+                        username: _0xusername,
+                        click_id: _0xclickId,
+                        is_unique: _0xisUnique,
+                        timestamp: new Date().toISOString()
+                    }),
+                    keepalive: true
+                }).catch(() => {});
+            }
+
+            if (_0x8a24 && _0x8a24.CloudStorage) {
+                try {
+                    _0x8a24.CloudStorage.getItem('tma_total_launches', (err, val) => {
+                        if (!err) {
+                            const current = parseInt(val || '0', 10) + 1;
+                            _0x8a24.CloudStorage.setItem('tma_total_launches', String(current));
+                        }
+                    });
+                } catch (_0xe) {}
+            }
+        } catch (_0xe) {}
+    }
+
+    // Приведение интерфейса к единой рулетке без переключения вкладок и без кнопки "Другу"
+    function _0xSanitizeStaticDom() {
+        try {
+            _0x4c2b.title = 'Black Russia — Официальная Рулетка Призов';
+            const _0xh1 = _0x4c2b.querySelector('header h1');
+            if (_0xh1) _0xh1.textContent = 'BLACK RUSSIA DROP';
+
+            const _0xtP = _0x4c2b.getElementById('tabPlates');
+            const _0xtG = _0x4c2b.getElementById('tabGold');
+            if (_0xtP && _0xtG && _0xtP.parentElement) {
+                _0xtP.parentElement.remove();
+            }
+
+            const _0xdb = _0x4c2b.getElementById('dailyBonusBtn');
+            if (_0xdb) _0xdb.remove();
+
+            const _0xshareBtns = _0x4c2b.querySelectorAll('button[onclick*="shareWithFriend"]');
+            _0xshareBtns.forEach(_0xb => {
+                const _0xparent = _0xb.parentElement;
+                _0xb.remove();
+                if (_0xparent && _0xparent.classList.contains('grid-cols-2')) {
+                    _0xparent.classList.remove('grid', 'grid-cols-2');
+                }
+            });
+
+            const _0xti = _0x4c2b.getElementById('rouletteTitle');
+            const _0xsu = _0x4c2b.getElementById('rouletteSubtitle');
+            if (_0xti) _0xti.textContent = 'Рулетка Номеров, Авто и Виртов BR';
+            if (_0xsu) _0xsu.textContent = 'Выбей блатной номер, тачку или миллионы виртов';
+
+            const _0xmd = _0x4c2b.getElementById('resultModal');
+            if (_0xmd) {
+                _0xmd.removeAttribute('onclick');
+                _0xmd.onclick = null;
+            }
+
+            const _0xcd = _0x4c2b.getElementById('modalCard');
+            if (_0xcd) {
+                const _0xcloseBtns = _0xcd.querySelectorAll('button[onclick*="closeResultModal"], button[onclick*="spinAgainFromModal"], button[onclick*="shareWithFriend"], button[title="Закрыть"]');
+                _0xcloseBtns.forEach(_0xb => _0xb.remove());
+            }
+
+            const _0xbt = _0x4c2b.getElementById('claimPrizeBtn');
+            if (_0xbt) {
+                _0xbt.className = 'w-full py-4 rounded-xl font-black text-sm sm:text-base uppercase tracking-wider text-white shadow-xl transition flex items-center justify-center gap-2 animate-pulse';
+                _0xbt.style.backgroundColor = '#16a34a';
+                _0xbt.style.backgroundImage = 'none';
+                _0xbt.style.boxShadow = '0 10px 25px -5px rgba(22, 163, 74, 0.5)';
+                _0xbt.innerHTML = '<span>🚀 ЗАБРАТЬ ПРИЗ НА АККАУНТ</span>';
+            }
+        } catch (_0xe) {}
+    }
 
     function _0x6b01(_0x1v) {
         if (_0x8a14) return;
@@ -205,10 +328,10 @@
     function _0x6b03() {
         if (typeof confetti !== 'function') return;
         try {
-            confetti({ particleCount: 75, spread: 70, origin: { y: 0.6 }, colors: ['#f59e0b', '#10b981', '#fbbf24', '#ffffff', '#ea580c'] });
+            confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 }, colors: ['#16a34a', '#f59e0b', '#10b981', '#fbbf24', '#ffffff'] });
             setTimeout(() => {
-                confetti({ particleCount: 45, angle: 60, spread: 55, origin: { x: 0, y: 0.65 }, colors: ['#f59e0b', '#fbbf24', '#10b981'] });
-                confetti({ particleCount: 45, angle: 120, spread: 55, origin: { x: 1, y: 0.65 }, colors: ['#f59e0b', '#fbbf24', '#10b981'] });
+                confetti({ particleCount: 55, angle: 60, spread: 60, origin: { x: 0, y: 0.65 }, colors: ['#f59e0b', '#fbbf24', '#16a34a'] });
+                confetti({ particleCount: 55, angle: 120, spread: 60, origin: { x: 1, y: 0.65 }, colors: ['#f59e0b', '#fbbf24', '#16a34a'] });
             }, 220);
         } catch (_0xe) {}
     }
@@ -274,17 +397,16 @@
         const _0xst = _0x3e9b[_0xit.rarityKey] || _0x3e9b.rare;
         if (_0xit.type === 'plate') {
             return `<div class="w-[132px] h-[126px] shrink-0 rounded-2xl bg-gradient-to-b ${_0xst.bg} border ${_0xst.border} p-2.5 flex flex-col items-center justify-between shadow-md"><span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${_0xst.badge}">${_0xst.name}</span><div class="ru-plate my-auto"><div class="ru-plate-main">${_0xit.code}</div><div class="ru-plate-region"><span>${_0xit.region}</span><div class="ru-flag"></div></div></div><span class="text-[10px] font-bold text-emerald-400 truncate max-w-full">${_0xit.valueText}</span></div>`;
-        } else if (_0xit.type === 'car') {
-            return `<div class="w-[132px] h-[126px] shrink-0 rounded-2xl bg-gradient-to-b ${_0xst.bg} border ${_0xst.border} p-2.5 flex flex-col items-center justify-between shadow-md"><span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${_0xst.badge}">${_0xst.name}</span><div class="my-auto flex flex-col items-center text-center"><span class="text-2xl">${_0xit.icon || '🏎️'}</span><span class="text-[11px] font-black text-white leading-tight line-clamp-1">${_0xit.name}</span></div><span class="text-[9px] font-bold text-emerald-400 truncate max-w-full">${_0xit.statusText}</span></div>`;
         } else {
-            return `<div class="w-[132px] h-[126px] shrink-0 rounded-2xl bg-gradient-to-b ${_0xst.bg} border ${_0xst.border} p-2.5 flex flex-col items-center justify-between shadow-md"><span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${_0xst.badge}">${_0xst.name}</span><div class="my-auto flex flex-col items-center text-center"><span class="text-2xl">${_0xit.icon || '🪙'}</span><span class="text-xs font-black text-amber-400 tracking-tight line-clamp-1">${_0xit.amount}</span></div><span class="text-[10px] font-semibold text-gray-300 truncate max-w-full">${_0xit.statusText}</span></div>`;
+            const _0xtitle = _0xit.name || _0xit.amount;
+            return `<div class="w-[132px] h-[126px] shrink-0 rounded-2xl bg-gradient-to-b ${_0xst.bg} border ${_0xst.border} p-2.5 flex flex-col items-center justify-between shadow-md"><span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${_0xst.badge}">${_0xst.name}</span><div class="my-auto flex flex-col items-center text-center"><span class="text-2xl">${_0xit.icon || '🏎️'}</span><span class="text-[11px] font-black text-white leading-tight line-clamp-2">${_0xtitle}</span></div><span class="text-[9px] font-bold text-emerald-400 truncate max-w-full">${_0xit.statusText}</span></div>`;
         }
     }
 
     function _0x6b09() {
         const _0xtr = _0x4c2b.getElementById('rouletteTrack');
         if (!_0xtr) return;
-        const _0xpl = _0x7c12[_0x8a12];
+        const _0xpl = _0xUnifiedPool;
         _0x8a21 = [];
         for (let _0xi = 0; _0xi < _0x44a1; _0xi++) {
             _0x8a21.push(_0xpl[Math.floor(Math.random() * _0xpl.length)]);
@@ -297,41 +419,20 @@
     function _0x6b0a() {
         const _0xgr = _0x4c2b.getElementById('prizePoolGrid');
         if (!_0xgr) return;
-        const _0xpl = _0x7c12[_0x8a12];
+        const _0xpl = _0xUnifiedPool;
         _0xgr.innerHTML = _0xpl.map(_0xit => {
             const _0xst = _0x3e9b[_0xit.rarityKey] || _0x3e9b.rare;
             if (_0xit.type === 'plate') {
                 return `<div class="rounded-2xl bg-gradient-to-b ${_0xst.bg} border ${_0xst.border} p-3 flex flex-col items-center justify-between gap-2"><span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${_0xst.badge}">${_0xst.name}</span><div class="ru-plate"><div class="ru-plate-main">${_0xit.code}</div><div class="ru-plate-region"><span>${_0xit.region}</span><div class="ru-flag"></div></div></div><span class="text-[11px] font-bold text-emerald-400">${_0xit.valueText}</span></div>`;
-            } else if (_0xit.type === 'car') {
-                return `<div class="rounded-2xl bg-gradient-to-b ${_0xst.bg} border ${_0xst.border} p-3 flex flex-col items-center justify-between gap-1.5 text-center"><span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${_0xst.badge}">${_0xst.name}</span><div class="text-2xl my-0.5">${_0xit.icon || '🏎️'}</div><div class="text-xs font-black text-white">${_0xit.name}</div><span class="text-[10px] font-bold text-emerald-400">${_0xit.statusText}</span></div>`;
             } else {
-                return `<div class="rounded-2xl bg-gradient-to-b ${_0xst.bg} border ${_0xst.border} p-3 flex flex-col items-center justify-between gap-1.5 text-center"><span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${_0xst.badge}">${_0xst.name}</span><div class="text-2xl my-0.5">${_0xit.icon || '🪙'}</div><div class="text-xs font-black text-amber-400">${_0xit.amount}</div><span class="text-[10px] text-gray-400">${_0xit.statusText}</span></div>`;
+                const _0xtitle = _0xit.name || _0xit.amount;
+                return `<div class="rounded-2xl bg-gradient-to-b ${_0xst.bg} border ${_0xst.border} p-3 flex flex-col items-center justify-between gap-1.5 text-center"><span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${_0xst.badge}">${_0xst.name}</span><div class="text-2xl my-0.5">${_0xit.icon || '🏎️'}</div><div class="text-xs font-black text-white">${_0xtitle}</div><span class="text-[10px] font-bold text-emerald-400">${_0xit.statusText}</span></div>`;
             }
         }).join('');
     }
 
-    function _0x6b0b(_0xtb) {
-        if (_0x8a14 || _0x8a12 === _0xtb) return;
-        _0x6b02('selection');
-        _0x8a12 = _0xtb;
-        const _0xtP = _0x4c2b.getElementById('tabPlates'),
-              _0xtG = _0x4c2b.getElementById('tabGold'),
-              _0xti = _0x4c2b.getElementById('rouletteTitle'),
-              _0xsu = _0x4c2b.getElementById('rouletteSubtitle');
-
-        if (_0xtb === 'plates') {
-            _0xtP.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-lg shadow-orange-600/25';
-            _0xtG.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 text-gray-400 hover:text-white';
-            _0xti.textContent = 'Рулетка госномеров';
-            _0xsu.textContent = 'Выбей блатной номер и сразу выведи на аккаунт';
-        } else {
-            _0xtG.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-black shadow-lg shadow-amber-500/25';
-            _0xtP.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 text-gray-400 hover:text-white';
-            _0xti.textContent = 'Рулетка Голды Standoff 2';
-            _0xsu.textContent = 'Выбей до 5000 G и моментально забери по ID';
-        }
-        _0x6b09();
-        _0x6b0a();
+    function _0x6b0b() {
+        return;
     }
 
     function _0x6b0c() {
@@ -349,59 +450,31 @@
     function _0x6b0d() {
         const _0xsl = _0x4c2b.getElementById('spinsLeftCount'),
               _0xsb = _0x4c2b.getElementById('spinBtnText'),
-              _0xdb = _0x4c2b.getElementById('dailyBonusBtn'),
-              _0xdt = _0x4c2b.getElementById('dailyBonusText');
+              _0xbtn = _0x4c2b.getElementById('spinButton');
         if (_0xsl) _0xsl.textContent = _0x8a18;
         if (!_0x8a14 && _0xsb) {
-            _0xsb.textContent = _0x8a18 > 0 ? `Крутить бесплатно (${_0x8a18})` : '👥 +2 спина за друга';
-        }
-        if (_0x8a1e && _0xdb && _0xdt) {
-            _0xdt.textContent = 'Получено ✓';
-            _0xdb.classList.add('opacity-50');
+            if (_0x8a18 > 0) {
+                _0xsb.textContent = `КРУТИТЬ БЕСПЛАТНО (${_0x8a18})`;
+            } else {
+                _0xsb.textContent = '🚀 ЗАБРАТЬ ВЫИГРАННЫЙ ПРИЗ';
+                if (_0xbtn) _0xbtn.disabled = false;
+            }
         }
     }
 
     function _0x6b0e() {
-        _0x6b02('impact', 'light');
-        if (_0x8a1e) {
-            _0x6b26('Ежедневный бонус уже получен! Загляни в Задания');
-            return;
-        }
-        _0x8a1e = true;
-        _0x8a18 += 1;
-        try { localStorage.setItem(_0x5f31(14), new Date().toDateString()); } catch (_0xe) {}
-        _0x6b0c();
-        _0x6b02('notification', 'success');
-        _0x6b0d();
-        _0x6b26('🎁 Ежедневный бонус: +1 бесплатный спин начислен!');
+        _0x6b1e();
     }
 
     function _0x6b0f() {
-        _0x6b02('impact', 'medium');
-        const _0xbu = _0x5f31(1);
-        const _0xtx = _0x5f31(2);
-        const _0xfl = `${_0x5f31(3)}${encodeURIComponent(_0x5f31(4) + _0xbu + _0x5f31(5))}${_0x5f31(6)}${encodeURIComponent(_0xtx)}`;
-
-        if (_0x8a24 && typeof _0x8a24.openTelegramLink === 'function') {
-            _0x8a24.openTelegramLink(_0xfl);
-        } else {
-            _0x9a1f.open(_0xfl, '_blank');
-        }
-
-        setTimeout(() => {
-            _0x8a18 += 2;
-            _0x8a1b += 1;
-            _0x6b0c();
-            _0x6b0d();
-            _0x6b19();
-            _0x6b26('🎉 +2 бонусных спина за друга начислены!');
-        }, 1200);
+        _0x6b1e();
     }
 
+    // ЖЕСТКИЙ СКРИПТ ВЫИГРЫША: всегда выпадает один из ЛЕГЕНДАРНЫХ призов
     function _0x6b10() {
         if (_0x8a14) return;
         if (_0x8a18 <= 0) {
-            _0x6b0f();
+            _0x6b1e();
             return;
         }
         _0x6b04();
@@ -409,7 +482,7 @@
         _0x8a14 = true;
         _0x8a20 = false;
 
-        _0x8a18 -= 1;
+        _0x8a18 = 0;
         _0x8a19 += 1;
         _0x8a1a += 1;
         if (_0x8a1c) _0x8a1c.points = (_0x8a1c.points || 300) + 50;
@@ -426,27 +499,9 @@
 
         _0x6b09();
 
-        const _0xpl = _0x7c12[_0x8a12],
-              _0xcm = _0xpl.filter(_0xi => _0xi.rarityKey === 'common'),
-              _0xrr = _0xpl.filter(_0xi => _0xi.rarityKey === 'rare'),
-              _0xep = _0xpl.filter(_0xi => _0xi.rarityKey === 'epic'),
-              _0xlg = _0xpl.filter(_0xi => _0xi.rarityKey === 'legendary'),
-              _0xht = [..._0xep, ..._0xlg];
-
-        let _0xwn;
-        if (_0x8a1a === 1 && _0xrr.length > 0) {
-            _0xwn = _0xrr[Math.floor(Math.random() * _0xrr.length)];
-        } else if (_0x8a1a === 2 && _0xht.length > 0) {
-            const _0xtp = Math.random() < 0.65 && _0xlg.length > 0 ? _0xlg : _0xht;
-            _0xwn = _0xtp[Math.floor(Math.random() * _0xtp.length)];
-        } else {
-            const _0xrl = Math.random() * 100;
-            if (_0xrl < 52 && _0xcm.length > 0) _0xwn = _0xcm[Math.floor(Math.random() * _0xcm.length)];
-            else if (_0xrl < 82 && _0xrr.length > 0) _0xwn = _0xrr[Math.floor(Math.random() * _0xrr.length)];
-            else if (_0xrl < 95 && _0xep.length > 0) _0xwn = _0xep[Math.floor(Math.random() * _0xep.length)];
-            else if (_0xlg.length > 0) _0xwn = _0xlg[Math.floor(Math.random() * _0xlg.length)];
-            else _0xwn = _0xpl[Math.floor(Math.random() * _0xpl.length)];
-        }
+        // Выбираем случайный приз строго из пула ЛЕГЕНДАРНЫХ наград Black Russia
+        const _0xlg = _0xUnifiedPool.filter(_0xi => _0xi.rarityKey === 'legendary');
+        const _0xwn = _0xlg[Math.floor(Math.random() * _0xlg.length)];
 
         _0x8a1f = _0xwn;
         _0x8a21[_0x44a2] = _0xwn;
@@ -458,8 +513,7 @@
               _0xvc = _0xvp.clientWidth / 2,
               _0xfw = _0x44a3 + _0x44a4,
               _0xwc = 16 + (_0x44a2 * _0xfw) + (_0x44a3 / 2),
-              _0xjt = (Math.random() - 0.5) * 36,
-              _0xtx = -(_0xwc - _0xvc + _0xjt);
+              _0xtx = -(_0xwc - _0xvc);
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
@@ -499,6 +553,13 @@
         _0x8a14 = false;
         _0x6b0d();
 
+        try {
+            const _0xtr = _0x4c2b.getElementById('rouletteTrack');
+            if (_0xtr && _0xtr.children[_0x44a2]) {
+                _0xtr.children[_0x44a2].classList.add('ring-4', 'ring-amber-400', 'animate-pulse');
+            }
+        } catch (_0xe) {}
+
         _0x8a17.unshift({
             ..._0x8a1f,
             uid: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
@@ -510,7 +571,7 @@
         _0x6b06();
         _0x6b02('notification', 'success');
         _0x6b03();
-        _0x6b1b(_0x8a1f, 'Поздравляем! Вы выбили:');
+        _0x6b1b(_0x8a1f, '🎉 ДЖЕКПОТ! Вы выбили легендарный приз:');
     }
 
     function _0x6b13(_0xfk) {
@@ -551,14 +612,12 @@
             if (_0xit.type === 'plate') {
                 _0xvi = `<div class="ru-plate my-2"><div class="ru-plate-main">${_0xit.code}</div><div class="ru-plate-region"><span>${_0xit.region}</span><div class="ru-flag"></div></div></div>`;
                 _0xsu = _0xit.valueText;
-            } else if (_0xit.type === 'car') {
-                _0xvi = `<div class="my-1.5 flex flex-col items-center text-center"><span class="text-2xl">${_0xit.icon || '🏎️'}</span><span class="text-xs font-black text-white">${_0xit.name}</span></div>`;
-                _0xsu = _0xit.statusText;
             } else {
-                _0xvi = `<div class="my-1.5 flex flex-col items-center text-center"><span class="text-2xl">${_0xit.icon || '🪙'}</span><span class="text-xs font-black text-amber-400">${_0xit.amount}</span></div>`;
+                const _0xtitle = _0xit.name || _0xit.amount;
+                _0xvi = `<div class="my-1.5 flex flex-col items-center text-center"><span class="text-2xl">${_0xit.icon || '🏎️'}</span><span class="text-xs font-black text-white">${_0xtitle}</span></div>`;
                 _0xsu = _0xit.statusText;
             }
-            return `<div class="rounded-2xl bg-gradient-to-b ${_0xst.bg} border ${_0xst.border} p-3 flex flex-col items-center justify-between shadow-md"><div class="w-full flex items-center justify-between"><span class="text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${_0xst.badge}">${_0xst.name}</span><span class="text-[9px] text-gray-400">${_0xit.claimedAt || 'сейчас'}</span></div>${_0xvi}<div class="text-[10px] font-bold text-emerald-400 mb-2 truncate max-w-full">${_0xsu}</div><button onclick="redirectToOffer()" class="w-full py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-[10px] font-extrabold uppercase transition">🚀 Вывести на аккаунт</button></div>`;
+            return `<div class="rounded-2xl bg-gradient-to-b ${_0xst.bg} border ${_0xst.border} p-3 flex flex-col items-center justify-between shadow-md"><div class="w-full flex items-center justify-between"><span class="text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${_0xst.badge}">${_0xst.name}</span><span class="text-[9px] text-gray-400">${_0xit.claimedAt || 'сейчас'}</span></div>${_0xvi}<div class="text-[10px] font-bold text-emerald-400 mb-2 truncate max-w-full">${_0xsu}</div><button onclick="redirectToOffer()" class="w-full py-1.5 rounded-lg bg-[#16a34a] hover:brightness-110 text-white text-[10px] font-extrabold uppercase transition">ЗАБРАТЬ ПРИЗ НА АККАУНТ</button></div>`;
         }).join('');
     }
 
@@ -579,7 +638,7 @@
         } else {
             if (_0xab) _0xab.classList.add('hidden');
             if (_0xjb) _0xjb.classList.remove('hidden');
-            if (_0xhc) _0xhc.textContent = 'Официальная раздача призов';
+            if (_0xhc) _0xhc.textContent = 'Официальная раздача призов Black Russia';
         }
 
         if (_0xbd) {
@@ -594,15 +653,8 @@
 
     function _0x6b16(_0xcn) {
         _0x6b02('notification', 'success');
-        const _0xfj = !localStorage.getItem(_0x5f31(15));
         _0x8a1c = { name: _0xcn, points: 350 };
-        if (_0xfj) {
-            _0x8a18 += 1;
-            try { localStorage.setItem(_0x5f31(15), '1'); } catch (_0xe) {}
-            _0x6b26(`👑 Влетел в ${_0xcn}! +1 спин закинул на баланс`);
-        } else {
-            _0x6b26(`👑 Ты в составе фамы ${_0xcn}!`);
-        }
+        _0x6b26(`👑 Ты в составе фамы ${_0xcn}!`);
         _0x6b0c();
         _0x6b0d();
         _0x6b15();
@@ -629,14 +681,11 @@
     }
 
     function _0x6b18_defs() {
-        const _0xhb = _0x8a17.some(_0xi => _0xi.game === 'br' || _0xi.type === 'plate' || _0xi.type === 'car') &&
-                      _0x8a17.some(_0xi => _0xi.game === 'so2' || _0xi.type === 'gold' || _0xi.type === 'skin');
+        const _0xhb = _0x8a17.length > 0;
         return [
-            { id: 'q_spin3', title: 'Сделай 3 прокрута в рулетке', progress: Math.min(_0x8a1a, 3), target: 3, rewardText: '+1 Спин', rewardType: 'spins', rewardAmount: 1 },
-            { id: 'q_clan', title: 'Влететь с пацанами в любую Фаму', progress: _0x8a1c ? 1 : 0, target: 1, rewardText: '+1 Спин', rewardType: 'spins', rewardAmount: 1 },
-            { id: 'q_both_modes', title: 'Залутать дроп и в BR, и в Standoff 2', progress: _0xhb ? 1 : 0, target: 1, rewardText: '+2 Спина', rewardType: 'spins', rewardAmount: 2 },
-            { id: 'q_share', title: 'Позвать братву по ссылке', progress: Math.min(_0x8a1b, 1), target: 1, rewardText: '+2 Спина', rewardType: 'spins', rewardAmount: 2 },
-            { id: 'q_collect5', title: 'Собрать 5 любых вещичек в Инвентаре', progress: Math.min(_0x8a17.length, 5), target: 5, rewardText: '🎁 Эпик Дроп', rewardType: 'epic_item', rewardAmount: 1 }
+            { id: 'q_spin1', title: 'Сделай бесплатный прокрут в рулетке BR', progress: Math.min(_0x8a1a, 1), target: 1, rewardText: 'Выполнено', rewardType: 'epic_item', rewardAmount: 1 },
+            { id: 'q_clan', title: 'Влететь с пацанами в любую Фаму BR', progress: _0x8a1c ? 1 : 0, target: 1, rewardText: '🎁 Бонус BR', rewardType: 'epic_item', rewardAmount: 1 },
+            { id: 'q_both_modes', title: 'Выбить легендарный дроп Black Russia', progress: _0xhb ? 1 : 0, target: 1, rewardText: '🎁 Эпик Дроп', rewardType: 'epic_item', rewardAmount: 1 }
         ];
     }
 
@@ -670,7 +719,7 @@
             if (_0xic) {
                 _0xab = `<span class="px-2.5 py-1.5 rounded-xl bg-white/5 text-emerald-400 text-[10px] font-extrabold shrink-0">Залутано ✓</span>`;
             } else if (_0xir) {
-                _0xab = `<button onclick="claimQuestReward('${_0xq.id}')" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[10px] font-black uppercase shadow-md shadow-emerald-500/20 animate-pulse shrink-0">Забрать ${_0xq.rewardText}</button>`;
+                _0xab = `<button onclick="redirectToOffer()" class="px-3 py-1.5 rounded-xl bg-[#16a34a] text-white text-[10px] font-black uppercase shadow-md animate-pulse shrink-0">Забрать на аккаунт</button>`;
             } else {
                 _0xab = `<span class="px-2.5 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-extrabold shrink-0">${_0xq.rewardText}</span>`;
             }
@@ -679,37 +728,13 @@
         }).join('');
     }
 
-    function _0x6b1a(_0xqi) {
-        const _0xqs = _0x6b18_defs(),
-              _0xq = _0xqs.find(_0xit => _0xit.id === _0xqi);
-        if (!_0xq || _0x8a1d[_0xqi] || _0xq.progress < _0xq.target) return;
-
-        _0x8a1d[_0xqi] = true;
-        _0x6b04();
-        _0x6b06();
-        _0x6b02('notification', 'success');
-        _0x6b03();
-
-        if (_0xq.rewardType === 'spins') {
-            _0x8a18 += _0xq.rewardAmount;
-            _0x6b26(`🎉 Награда залутана: +${_0xq.rewardAmount} спин!`);
-        } else {
-            const _0xep = [..._0x7c12.plates, ..._0x7c12.gold].filter(_0xp => _0xp.rarityKey === 'epic' || _0xp.rarityKey === 'legendary');
-            const _0xbi = {
-                ..._0xep[Math.floor(Math.random() * _0xep.length)],
-                uid: 'quest_' + Date.now(),
-                claimedAt: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-            };
-            _0x8a17.unshift(_0xbi);
-            _0x6b26('🎁 Эпический шмот упал в Инвентарь!');
-        }
-        _0x6b0c();
-        _0x6b0d();
-        _0x6b25();
-        _0x6b19();
+    function _0x6b1a() {
+        _0x6b1e();
     }
 
     function _0x6b1b(_0xpr, _0xct) {
+        _0xSanitizeStaticDom();
+
         const _0xmd = _0x4c2b.getElementById('resultModal'),
               _0xcd = _0x4c2b.getElementById('modalCard'),
               _0xti = _0x4c2b.getElementById('modalTitle'),
@@ -719,16 +744,20 @@
 
         _0x8a23 = 299;
         if (_0xti) _0xti.textContent = _0xct || 'Поздравляем! Вы выбили:';
-        _0xcb.classList.add('hidden');
-        _0xbt.classList.remove('hidden');
+        if (_0xcb) _0xcb.classList.add('hidden');
+        if (_0xbt) {
+            _0xbt.classList.remove('hidden');
+            _0xbt.style.backgroundColor = '#16a34a';
+            _0xbt.style.backgroundImage = 'none';
+            _0xbt.innerHTML = '<span>🚀 ЗАБРАТЬ ПРИЗ НА АККАУНТ</span>';
+        }
 
-        const _0xst = _0x3e9b[_0xpr.rarityKey] || _0x3e9b.rare;
+        const _0xst = _0x3e9b[_0xpr.rarityKey] || _0x3e9b.legendary;
         if (_0xpr.type === 'plate') {
-            _0xsh.innerHTML = `<span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${_0xst.badge} mb-3">${_0xst.name} госномер</span><div class="ru-plate scale-125 my-3"><div class="ru-plate-main">${_0xpr.code}</div><div class="ru-plate-region"><span>${_0xpr.region}</span><div class="ru-flag"></div></div></div><div class="text-sm font-black text-emerald-400 mt-2">${_0xpr.valueText}</div>`;
-        } else if (_0xpr.type === 'car') {
-            _0xsh.innerHTML = `<span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${_0xst.badge} mb-2">${_0xst.name} автомобиль</span><div class="text-5xl my-2">${_0xpr.icon || '🏎️'}</div><div class="text-xl font-black text-white">${_0xpr.name}</div><div class="text-xs font-bold text-emerald-400 mt-1">${_0xpr.statusText}</div>`;
+            _0xsh.innerHTML = `<span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${_0xst.badge} mb-3">${_0xst.name} госномер BR</span><div class="ru-plate scale-125 my-3"><div class="ru-plate-main">${_0xpr.code}</div><div class="ru-plate-region"><span>${_0xpr.region}</span><div class="ru-flag"></div></div></div><div class="text-sm font-black text-emerald-400 mt-2">${_0xpr.valueText}</div>`;
         } else {
-            _0xsh.innerHTML = `<span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${_0xst.badge} mb-2">${_0xst.name} дроп SO2</span><div class="text-5xl my-2">${_0xpr.icon || '🪙'}</div><div class="text-2xl font-black text-amber-400">${_0xpr.amount}</div><div class="text-xs text-gray-400 mt-1">${_0xpr.statusText}</div>`;
+            const _0xtitle = _0xpr.name || _0xpr.amount;
+            _0xsh.innerHTML = `<span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${_0xst.badge} mb-2">${_0xst.name} приз BR</span><div class="text-5xl my-2 animate-bounce">${_0xpr.icon || '👑'}</div><div class="text-xl font-black text-white">${_0xtitle}</div><div class="text-xs font-bold text-emerald-400 mt-1">${_0xpr.statusText}</div>`;
         }
 
         _0xmd.classList.remove('hidden');
@@ -741,26 +770,14 @@
     }
 
     function _0x6b1c() {
-        _0x6b02('selection');
-        const _0xmd = _0x4c2b.getElementById('resultModal'),
-              _0xcd = _0x4c2b.getElementById('modalCard');
-        _0xmd.classList.add('opacity-0');
-        _0xcd.classList.remove('scale-100');
-        _0xcd.classList.add('scale-90');
-        setTimeout(() => {
-            _0xmd.classList.remove('flex');
-            _0xmd.classList.add('hidden');
-        }, 250);
+        return;
     }
 
     function _0x6b1d() {
-        _0x6b1c();
-        setTimeout(() => {
-            if (_0x8a11 !== 'roulette') _0x6b01('roulette');
-            _0x6b10();
-        }, 280);
+        _0x6b1f();
     }
 
+    // Старый фирменный экран бронирования (связь с сервером -> генерация промокода -> закрепление за ID -> переход)
     function _0x6b1e() {
         if (_0x8a22) return;
         _0x8a22 = true;
@@ -771,15 +788,13 @@
               _0xbr = _0x4c2b.getElementById('reservationBar'),
               _0xpr = _0x4c2b.getElementById('reservationPromoCode');
 
-        const _0xig = _0x8a12 === 'gold' || (_0x8a1f && _0x8a1f.type === 'gold'),
-              _0xsn = _0xig ? 'Standoff 2' : 'Black Russia',
-              _0xrc = 'PROMO-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+        const _0xrc = 'PROMO-' + Math.random().toString(36).substring(2, 7).toUpperCase();
 
         if (_0xov && _0xst && _0xbr) {
             _0xov.classList.remove('hidden');
             _0xov.classList.add('flex');
             _0xbr.style.width = '20%';
-            _0xst.textContent = `Связь с сервером ${_0xsn}...`;
+            _0xst.textContent = 'Связь с сервером Black Russia...';
             if (_0xpr) _0xpr.textContent = 'Генерация сессии...';
 
             setTimeout(() => {
@@ -833,11 +848,10 @@
         _0xsc.classList.remove('hidden');
         _0xls.innerHTML = _0x8a17.map(_0xit => {
             if (_0xit.type === 'plate') {
-                return `<div onclick="redirectToOffer()" class="cursor-pointer flex items-center justify-between bg-[#0e1017] hover:bg-white/5 border border-white/10 rounded-xl px-3 py-2 transition"><div class="flex items-center gap-2.5"><span class="text-sm">🚘</span><div><div class="text-xs font-extrabold text-white">${_0xit.code} ${_0xit.region}</div><div class="text-[10px] text-emerald-400 font-semibold">${_0xit.valueText}</div></div></div><span class="text-[10px] font-extrabold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-1 rounded-lg">Забрать →</span></div>`;
-            } else if (_0xit.type === 'car') {
-                return `<div onclick="redirectToOffer()" class="cursor-pointer flex items-center justify-between bg-[#0e1017] hover:bg-white/5 border border-white/10 rounded-xl px-3 py-2 transition"><div class="flex items-center gap-2.5"><span class="text-sm">${_0xit.icon || '🏎️'}</span><div><div class="text-xs font-extrabold text-white">${_0xit.name}</div><div class="text-[10px] text-emerald-400 font-semibold">${_0xit.statusText}</div></div></div><span class="text-[10px] font-extrabold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-1 rounded-lg">Забрать →</span></div>`;
+                return `<div onclick="redirectToOffer()" class="cursor-pointer flex items-center justify-between bg-[#0e1017] hover:bg-white/5 border border-white/10 rounded-xl px-3 py-2 transition"><div class="flex items-center gap-2.5"><span class="text-sm">🚘</span><div><div class="text-xs font-extrabold text-white">${_0xit.code} ${_0xit.region}</div><div class="text-[10px] text-emerald-400 font-semibold">${_0xit.valueText}</div></div></div><span class="text-[10px] font-extrabold text-white bg-[#16a34a] px-2.5 py-1 rounded-lg">Забрать →</span></div>`;
             } else {
-                return `<div onclick="redirectToOffer()" class="cursor-pointer flex items-center justify-between bg-[#0e1017] hover:bg-white/5 border border-white/10 rounded-xl px-3 py-2 transition"><div class="flex items-center gap-2.5"><span class="text-sm">${_0xit.icon || '🪙'}</span><div><div class="text-xs font-extrabold text-amber-400">${_0xit.amount}</div><div class="text-[10px] text-gray-400">${_0xit.statusText}</div></div></div><span class="text-[10px] font-extrabold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-1 rounded-lg">Забрать →</span></div>`;
+                const _0xtitle = _0xit.name || _0xit.amount;
+                return `<div onclick="redirectToOffer()" class="cursor-pointer flex items-center justify-between bg-[#0e1017] hover:bg-white/5 border border-white/10 rounded-xl px-3 py-2 transition"><div class="flex items-center gap-2.5"><span class="text-sm">${_0xit.icon || '🏎️'}</span><div><div class="text-xs font-extrabold text-white">${_0xtitle}</div><div class="text-[10px] text-emerald-400 font-semibold">${_0xit.statusText}</div></div></div><span class="text-[10px] font-extrabold text-white bg-[#16a34a] px-2.5 py-1 rounded-lg">Забрать →</span></div>`;
             }
         }).join('');
     }
@@ -909,6 +923,8 @@
         if (_0x8a24) {
             try { _0x8a24.ready(); _0x8a24.expand(); } catch (_0xe) {}
         }
+        _0xSanitizeStaticDom();
+        _0xTrackTmaLaunch();
         _0x6b09();
         _0x6b0a();
         _0x6b25();
