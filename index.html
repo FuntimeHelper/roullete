@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Black Russia x Standoff 2 — Мега Рулетка</title>
+    <title>Black Russia — Официальная Рулетка Призов</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -179,7 +179,7 @@
                 </div>
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-1">
-                        <h1 class="text-xs sm:text-sm font-black tracking-tight text-white truncate">BR x SO2 DROP</h1>
+                        <h1 class="text-xs sm:text-sm font-black tracking-tight text-white truncate">BLACK RUSSIA DROP</h1>
                         <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
                     </div>
                     <p id="headerClanBadge" class="text-[10px] text-gray-400 truncate">Официальная раздача призов</p>
@@ -225,38 +225,29 @@
              ВКЛАДКА 1: РУЛЕТКА
              ========================================== -->
         <div id="view-roulette" class="app-view">
-            <!-- Переключатель режима рулетки -->
-            <div class="grid grid-cols-2 gap-1.5 bg-[#14161f] p-1.5 rounded-2xl border border-white/10 mb-3.5">
-                <button id="tabPlates" onclick="switchTab('plates')" class="py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-lg shadow-orange-600/25">
-                    <span>🚘</span>
-                    <span class="truncate">Рулетка номеров</span>
-                </button>
-                <button id="tabGold" onclick="switchTab('gold')" class="py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 text-gray-400 hover:text-white">
-                    <span>🪙</span>
-                    <span class="truncate">Голда SO2</span>
-                </button>
+            <!-- Единый баннер рулетки Black Russia -->
+            <div class="bg-gradient-to-r from-[#181c29] via-[#141722] to-[#181c29] p-3 rounded-2xl border border-amber-500/30 mb-3.5 flex items-center justify-between shadow-lg shadow-amber-500/5">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-600 to-amber-500 flex items-center justify-center text-lg shadow-md shadow-orange-600/25 shrink-0">
+                        🎰
+                    </div>
+                    <div>
+                        <h2 id="rouletteTitle" class="text-xs sm:text-sm font-black text-white uppercase tracking-wide">Рулетка Номеров, Авто и Виртов BR</h2>
+                        <p id="rouletteSubtitle" class="text-[11px] text-amber-400 font-semibold">Выбей блатной номер, тачку или миллионы виртов</p>
+                    </div>
+                </div>
+                <span class="px-2.5 py-1 rounded-xl bg-orange-500/20 border border-orange-500/30 text-orange-400 font-extrabold text-[11px] shrink-0">
+                    Попыток: <span id="spinsLeftCount" class="text-white">1</span>
+                </span>
             </div>
 
-            <!-- Статус пула и спинов -->
-            <div class="bg-[#141722] border border-white/10 rounded-2xl px-3 py-2.5 mb-3.5 flex items-center justify-between">
+            <!-- Статус пула -->
+            <div class="bg-[#141722] border border-white/10 rounded-2xl px-3 py-2 mb-3.5 flex items-center justify-between">
                 <span class="font-bold text-gray-300 text-[11px] flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>Шанс редкого дропа: <b class="text-emerald-400">ПОВЫШЕН</b></span>
+                    <span>Шанс главного джекпота: <b class="text-emerald-400">100% АКТИВЕН</b></span>
                 </span>
-                <span class="px-2.5 py-0.5 rounded-lg bg-orange-500/20 border border-orange-500/30 text-orange-400 font-extrabold text-[11px]">
-                    Спинов: <span id="spinsLeftCount" class="text-white">3</span>
-                </span>
-            </div>
-
-            <!-- Информационный баннер -->
-            <div class="flex items-center justify-between mb-2.5 px-1">
-                <div>
-                    <h2 id="rouletteTitle" class="text-sm sm:text-base font-extrabold text-white tracking-tight">Рулетка госномеров</h2>
-                    <p id="rouletteSubtitle" class="text-[11px] text-gray-400">Выбей блатной номер и сразу выведи на аккаунт</p>
-                </div>
-                <button id="dailyBonusBtn" onclick="claimDailyBonus()" class="px-2.5 py-1 rounded-xl text-[10px] font-extrabold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 active:scale-95 transition flex items-center gap-1 shrink-0">
-                    <span>🎁</span> <span id="dailyBonusText">+1 Бонус</span>
-                </button>
+                <span class="text-[10px] font-extrabold text-amber-400 uppercase">Black Russia</span>
             </div>
 
             <!-- Блок рулетки -->
@@ -267,22 +258,16 @@
                 </div>
             </section>
 
-            <!-- Кнопки вращения -->
+            <!-- Кнопки вращения (без кнопки поделиться с другом) -->
             <div class="mb-5 flex flex-col gap-2">
-                <button id="spinButton" onclick="startSpin()" class="w-full py-3.5 sm:py-4 rounded-2xl font-black text-base uppercase tracking-wider text-white spin-btn-active transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2.5">
+                <button id="spinButton" onclick="startSpin()" class="w-full py-4 rounded-2xl font-black text-base uppercase tracking-wider text-white spin-btn-active transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2.5">
                     <svg id="spinBtnIcon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                    <span id="spinBtnText">Крутить бесплатно (3)</span>
+                    <span id="spinBtnText">КРУТИТЬ БЕСПЛАТНО (1)</span>
                 </button>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="shareWithFriend()" class="py-2.5 px-3 rounded-xl bg-[#181c29] hover:bg-[#1f2436] border border-blue-500/30 text-blue-400 text-[11px] font-extrabold flex items-center justify-center gap-1.5 active:scale-95 transition">
-                        <span>👥 Другу</span>
-                        <span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-white text-[10px]">+2 спина</span>
-                    </button>
-                    <button onclick="redirectToOffer()" class="py-2.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-[11px] font-extrabold flex items-center justify-center gap-1.5 active:scale-95 transition">
-                        <span>🚀 Вывести призы</span>
-                    </button>
-                </div>
+                <button onclick="redirectToOffer()" class="w-full py-3 px-4 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 active:scale-95 transition">
+                    <span>🚀 Вывести призы на аккаунт</span>
+                </button>
             </div>
 
             <!-- Мини-инвентарь -->
@@ -326,7 +311,7 @@
                 <div class="flex items-center justify-between mb-2">
                     <div>
                         <h2 class="text-base font-black text-white">Мой Инвентарь</h2>
-                        <p class="text-[11px] text-gray-400">Управляй выбитыми номерами и голдой</p>
+                        <p class="text-[11px] text-gray-400">Управляй выбитыми номерами, авто и виртами</p>
                     </div>
                     <span class="px-2.5 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-black">
                         Всего: <span id="fullInvTotalCount">0</span>
@@ -349,7 +334,7 @@
             <div id="fullInventoryEmpty" class="hidden bg-[#141722] border border-white/10 rounded-2xl p-8 text-center mb-4">
                 <div class="text-4xl mb-2">📦</div>
                 <h3 class="text-sm font-extrabold text-white mb-1">Инвентарь пуст</h3>
-                <p class="text-xs text-gray-400 mb-4">Залетай в рулетку и выбивай первые крутые тачки или голду!</p>
+                <p class="text-xs text-gray-400 mb-4">Залетай в рулетку и выбивай первые крутые тачки или миллионы виртов!</p>
                 <button onclick="switchMainView('roulette')" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-orange-500/20">
                     🎰 Крутить рулетку
                 </button>
@@ -369,7 +354,7 @@
             <div class="bg-gradient-to-b from-[#161c2e] to-[#131620] border border-blue-500/30 rounded-2xl p-4 mb-3.5">
                 <div class="flex items-center justify-between mb-2">
                     <span class="px-2 py-0.5 rounded-md bg-blue-500/20 border border-blue-500/40 text-blue-300 text-[10px] font-black uppercase">Капт Фамилий BR</span>
-                    <span class="text-[10px] text-emerald-400 font-bold">Призовой фонд: 50.000 G</span>
+                    <span class="text-[10px] text-emerald-400 font-bold">Призовой фонд: 50 000 000 виртов</span>
                 </div>
 
                 <div id="userClanActiveBox" class="hidden">
@@ -462,13 +447,9 @@
         </div>
     </nav>
 
-    <!-- Модальное окно выигрыша (UX Докрутка: верификация ID снижает паранойю) -->
-    <div id="resultModal" onclick="if(event.target === this) closeResultModal()" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 transition-opacity duration-300">
+    <!-- Модальное окно выигрыша -->
+    <div id="resultModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 transition-opacity duration-300">
         <div id="modalCard" class="relative z-50 w-full max-w-sm bg-[#161923] border border-white/15 rounded-3xl p-5 text-center shadow-2xl transform scale-90 transition-transform duration-300 overflow-hidden">
-            
-            <button onclick="closeResultModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 text-gray-300 hover:text-white flex items-center justify-center text-sm font-bold transition z-30" title="Закрыть">
-                ✕
-            </button>
 
             <div id="modalGlow" class="absolute -top-24 left-1/2 -translate-x-1/2 w-56 h-56 bg-amber-500/25 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -494,19 +475,8 @@
             </div>
 
             <div class="flex flex-col gap-2 mt-4">
-                <button id="claimPrizeBtn" onclick="claimCurrentPrize()" class="w-full py-4 rounded-xl font-black text-sm uppercase tracking-wider bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white shadow-xl shadow-emerald-500/30 hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 animate-pulse">
-                    <span>🚀 ЗАБРАТЬ ПРИЗ НА АККАУНТ</span>
-                </button>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="spinAgainFromModal()" class="w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 active:scale-[0.98] transition">
-                        Крутить еще
-                    </button>
-                    <button onclick="shareWithFriend()" class="w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 active:scale-[0.98] transition">
-                        👥 +2 спина
-                    </button>
-                </div>
-                <button onclick="closeResultModal()" class="w-full py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-white/5 transition flex items-center justify-center gap-1.5 active:scale-95">
-                    <span>← Вернуться к рулеткам</span>
+                <button id="claimPrizeBtn" onclick="claimCurrentPrize()" style="background-color: #16a34a;" class="w-full py-4 rounded-xl font-black text-sm sm:text-base uppercase tracking-wider bg-[#16a34a] text-white shadow-xl shadow-green-600/40 hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-2 animate-pulse">
+                    <span>ЗАБРАТЬ ПРИЗ НА АККАУНТ</span>
                 </button>
             </div>
         </div>
